@@ -204,3 +204,8 @@ CREATE TABLE schedule (
 -- repeat :반복유무
      -- 0 : 반복일정이아님, 1:년반복, 2:월반복, 3:일반복
 -- repeat_cycle : 반복주기
+
+--로그인 점검용 SQL
+ select * from member1 m1
+ join member2 m2
+ on m1.userId=m2.userId;
