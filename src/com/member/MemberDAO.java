@@ -86,11 +86,45 @@ public class MemberDAO {
 		String sql;
 		
 		try {
+//			conn.setAutoCommit(false);
+//			sql = "INSERT INTO member1(userId, userName, userPwd) VALUES(?, ?, ?)";
+//			pstmt = conn.prepareStatement(sql);
+//			pstmt.setString(1, dto.getUserId());
+//			pstmt.setString(2, dto.getUserName());
+//			pstmt.setString(3, dto.getUserPwd());
+//			pstmt.executeUpdate();
+//			pstmt.close();
+//			
+//			sql = "INSERT INTO member2(userId, birth, email, tel, zip, addr1, addr2) VALUES(?, ?, ?, ?, ?, ?, ?)";
+//			pstmt.setString(1, dto.getUserId());
+//			pstmt.setString(2, dto.getBirth());
+//			pstmt.setString(3, dto.getEmail());
+//			pstmt.setString(4,dto.getTel());
+//			pstmt.setString(5,dto.getZip());
+//			pstmt.setString(6, dto.getAddr1());
+//			pstmt.setString(7,dto.getAddr2());
+//			pstmt.executeUpdate();
+			
+			sql = "INSERT ALL " + " INTO member1(userId, userName, userPwd) VALUES(?, ?, ?) " 
+			+ " INTO member2(userId, birth, email, tel, zip, addr1, addr2) VALUES(?, ?, ?, ?, ?, ?, ?) SELECT * FROM DUAL ";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, dto.getUserId());
+			pstmt.setString(2, dto.getUserName());
+			pstmt.setString(3, dto.getUserPwd());
+			pstmt.setString(4, dto.getUserId());
+			pstmt.setString(5, dto.getBirth());
+			pstmt.setString(6, dto.getEmail());
+			pstmt.setString(7,dto.getTel());
+			pstmt.setString(8,dto.getZip());
+			pstmt.setString(9, dto.getAddr1());
+			pstmt.setString(10,dto.getAddr2());
+			pstmt.executeUpdate();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		} finally {
+//			conn.setAutoCommit(true);
 			if(pstmt!=null) {
 				try {
 					pstmt.close();
