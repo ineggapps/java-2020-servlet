@@ -310,10 +310,16 @@ public class BoardServlet extends HttpServlet {
 		BoardDAO dao = new BoardDAO();
 		BoardDTO dto = new BoardDTO();
 		try {
+			
+			if(req.getMethod().equalsIgnoreCase("GET")) {
+				throw new Exception("비정상적인 접근");
+			}
+			
 			int num = Integer.parseInt(req.getParameter("num"));
 			dto.setNum(num);
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
+			
 			//시큐어 코딩
 			dto.setUserId(info.getUserId());
 			// 게시글 수정 반영
