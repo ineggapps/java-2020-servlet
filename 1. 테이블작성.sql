@@ -72,8 +72,10 @@ SELECT * FROM tab;
 
 --------------------------------------
 -- 게시판 테이블
+-- 실무에서는 되도록 조인을 지양하지만, 실습을 위해서 굳이 테이블을 더 분절하여 조인하도록 설계하였다는 점을 감안하기.
+
 CREATE TABLE bbs (
-    num NUMBER GENERATED AS IDENTITY PRIMARY KEY
+    num NUMBER GENERATED AS IDENTITY PRIMARY KEY -- 비권장.. 시퀀스를 사용하기! 답변형 게시판 등 이 번호를 참조할 때 굉장히 제어하기 복잡해 진다.
     ,userId VARCHAR2(50) NOT NULL
     ,subject VARCHAR2(250) NOT NULL
     ,content VARCHAR2(4000) NOT NULL
