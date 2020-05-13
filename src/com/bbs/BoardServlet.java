@@ -257,7 +257,9 @@ public class BoardServlet extends HttpServlet {
 	protected void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		req.setAttribute("mode", "update");
 		BoardDAO dao = new BoardDAO();
-
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
+		
 		String condition = req.getParameter("condition");
 		String keyword = req.getParameter("keyword");
 		if (req.getMethod().equalsIgnoreCase("GET") && keyword != null && keyword.length() > 0) {
@@ -277,6 +279,10 @@ public class BoardServlet extends HttpServlet {
 			if (keyword != null && keyword.length() > 0) {
 				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
 			}
+			
+			if (!dao.isAuthor(num, info.getUserId())) {
+				throw new Exception("작성자가 아닌데 수정을 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
+			}
 
 			req.setAttribute("page", page);
 			req.setAttribute("dto", dto);
@@ -293,6 +299,9 @@ public class BoardServlet extends HttpServlet {
 	protected void updateSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String cp = req.getContextPath();
 		String query = req.getParameter("query");
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
+
 		if (query == null) {
 			query = "";
 		}
@@ -303,6 +312,10 @@ public class BoardServlet extends HttpServlet {
 			dto.setNum(num);
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
+			// 수정 이전에 작성자 본인이 시도한 것이 맞는지 확인하기
+			if (!dao.isAuthor(num, info.getUserId())) {
+				throw new Exception("작성자가 아닌데 수정을 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
+			}
 			// 게시글 수정 반영
 			dao.updateBoard(dto);
 		} catch (Exception e) {
@@ -337,7 +350,7 @@ public class BoardServlet extends HttpServlet {
 			if (dao.isAuthor(num, info.getUserId()) == true) {
 				dao.deleteBoard(num);
 			} else {
-				throw new Exception("작성자가 아닌데 수정을 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
+				throw new Exception("작성자가 아닌데 삭제를 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
