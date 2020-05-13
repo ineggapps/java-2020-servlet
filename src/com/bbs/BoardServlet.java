@@ -314,12 +314,8 @@ public class BoardServlet extends HttpServlet {
 			dto.setNum(num);
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
-			// 수정 이전에 작성자 본인이 시도한 것이 맞는지 확인하기
-			if (!dao.isAuthor(num, info.getUserId())) {
-				throw new Exception("작성자가 아닌데 수정을 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
-			}
 			// 게시글 수정 반영
-			dao.updateBoard(dto);
+			dao.updateBoard(dto,info.getUserId());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -349,11 +345,7 @@ public class BoardServlet extends HttpServlet {
 				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
 			}
 			// 삭제 이전에 작성자가 요청한 것이 맞는지 확인하기
-			if (dao.isAuthor(num, info.getUserId()) == true) {
-				dao.deleteBoard(num);
-			} else {
-				throw new Exception("작성자가 아닌데 삭제를 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
-			}
+			dao.deleteBoard(num, info.getUserId());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

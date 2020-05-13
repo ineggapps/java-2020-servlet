@@ -385,15 +385,16 @@ public class BoardDAO {
 		return dto;
 	}
 	
-	public int updateBoard(BoardDTO dto) {
+	public int updateBoard(BoardDTO dto, String userId) {
 		int result = 0;
 		PreparedStatement pstmt = null;
-		String sql = "UPDATE bbs SET subject=?, content=?  WHERE num = ?";
+		String sql = "UPDATE bbs SET subject=?, content=?  WHERE num = ? AND userId= ?";
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, dto.getSubject());
 			pstmt.setString(2, dto.getContent());
 			pstmt.setInt(3,dto.getNum());
+			pstmt.setString(4, userId);
 			result = pstmt.executeUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -409,13 +410,14 @@ public class BoardDAO {
 		return result;
 	}
 	
-	public int deleteBoard(int num) {
+	public int deleteBoard(int num, String userId) {
 		int result = 0;
 		PreparedStatement pstmt = null;
-		String sql = "DELETE FROM bbs WHERE num = ?";
+		String sql = "DELETE FROM bbs WHERE num = ? AND userId = ?";
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, num);
+			pstmt.setString(2,  userId);
 			result = pstmt.executeUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();
