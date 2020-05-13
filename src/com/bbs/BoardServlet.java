@@ -229,6 +229,7 @@ public class BoardServlet extends HttpServlet {
 			content = content.replaceAll("<", "&lt;");
 			content = content.replaceAll(">", "&lt;");
 			content = content.replaceAll("\n", "<br />");
+			dto.setContent(content);//... 이걸 깜빡했구나
 
 			// 이전글, 다음글
 			BoardDTO preReadBoardDTO = dao.preReadBoard(num, condition, keyword);
