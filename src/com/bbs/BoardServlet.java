@@ -259,7 +259,7 @@ public class BoardServlet extends HttpServlet {
 		BoardDAO dao = new BoardDAO();
 		HttpSession session = req.getSession();
 		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
-		
+		String query = "";
 		String condition = req.getParameter("condition");
 		String keyword = req.getParameter("keyword");
 		if (req.getMethod().equalsIgnoreCase("GET") && keyword != null && keyword.length() > 0) {
@@ -275,7 +275,7 @@ public class BoardServlet extends HttpServlet {
 			int num = Integer.parseInt(req.getParameter("num"));
 			BoardDTO dto = dao.readBoard(num);
 
-			String query = "?page=" + page;
+			query = "?page=" + page;
 			if (keyword != null && keyword.length() > 0) {
 				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
 			}
@@ -290,6 +290,8 @@ public class BoardServlet extends HttpServlet {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			resp.sendRedirect(req.getContextPath()+ "/bbs/list.do" + query);
+			return;
 		}
 
 		forward(req, resp, VIEWS + "/created.jsp");
