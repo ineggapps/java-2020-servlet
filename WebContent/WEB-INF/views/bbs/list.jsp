@@ -41,7 +41,7 @@
 			<table style="width: 100%; margin-top: 20px; border-spacing: 0;">
 			   <tr height="35">
 			      <td align="left" width="50%">
-			          1개(1/1 페이지)
+			          ${dataCount}개(${current_page}/${total_page} 페이지)
 			      </td>
 			      <td align="right">
 			          &nbsp;
@@ -58,22 +58,24 @@
 			      <th width="60" style="color: #787878;">조회수</th>
 			  </tr>
 			 
+			 <c:forEach var="dto" items="${list}">
 			  <tr align="center" height="35" style="border-bottom: 1px solid #cccccc;"> 
-			      <td>1</td>
+			      <td>${dto.listNum}</td>
 			      <td align="left" style="padding-left: 10px;">
-			           <a href="#">제목입니다...</a>
+			           <a href="${articleUrl}&amp;num=${dto.num}">${dto.subject}</a>
 			      </td>
-			      <td>스프링</td>
-			      <td>2010-10-10</td>
-			      <td>1</td>
+			      <td>${dto.userName}</td>
+			      <td>${dto.created}</td>
+			      <td>${dto.hitCount}</td>
 			  </tr>
+			 </c:forEach>
 
 			</table>
 			 
 			<table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			   <tr height="35">
 				<td align="center">
-			        1 2 3
+			        ${paging}
 				</td>
 			   </tr>
 			</table>
@@ -86,12 +88,12 @@
 			      <td align="center">
 			          <form name="searchForm" action="<%=cp%>/bbs/list.do" method="post">
 			              <select name="condition" class="selectField">
-			                  <option value="subject">제목</option>
-			                  <option value="userName">작성자</option>
-			                  <option value="content">내용</option>
-			                  <option value="created">등록일</option>
+			                  <option value="subject" ${condition=="subject"?"selected='selected'":""}>제목</option>
+			                  <option value="userName" ${condition=="userName"?"selected='selected'":""}>작성자</option>
+			                  <option value="content" ${condition=="content"?"selected='selected'":""}>내용</option>
+			                  <option value="created" ${condition=="created"?"selected='selected'":""}>등록일</option>
 			            </select>
-			            <input type="text" name="keyword" class="boxTF">
+			            <input type="text" name="keyword" class="boxTF" value="${keyword}">
 			            <button type="button" class="btn" onclick="searchList()">검색</button>
 			        </form>
 			      </td>

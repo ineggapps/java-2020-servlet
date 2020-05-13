@@ -1,6 +1,9 @@
 package com.bbs;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -11,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.member.SessionInfo;
+import com.util.MyUtil;
 
 //Tomcat 7.5부터 가능
 @WebServlet("/bbs/*")
@@ -80,6 +84,84 @@ public class BoardServlet extends HttpServlet {
 
 	// 게시글 목록
 	protected void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		BoardDAO dao = new BoardDAO();
+		MyUtil myUtil = new MyUtil();
+		String cp = req.getContextPath();
+		String page = req.getParameter("page");
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page);
+		}
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		int dataCount;
+		if (condition.length() > 0 && keyword.length() > 0) {
+			// 검색했을 경우
+			dataCount = dao.dataCount(condition, keyword);
+		} else {
+			dataCount = dao.dataCount();
+		}
+		int rows = 10;
+		int total_page = myUtil.pageCount(rows, dataCount);
+		if (current_page > total_page) {
+			current_page = total_page;
+		}
+
+		int offset = (current_page - 1) * rows;
+		if (offset < 0) {
+			offset = 0;
+		}
+
+		List<BoardDTO> list;
+		if (keyword.length() > 0) {
+			list = dao.listBoard(offset, rows, condition, keyword);
+		} else {
+			list = dao.listBoard(offset, rows);
+		}
+
+		// 리스트 글 번호 만들기
+		int listNum, n = 0;
+		for (BoardDTO dto : list) {
+			listNum = dataCount - (offset + n);
+			dto.setListNum(listNum);
+			n++;
+		}
+
+		String query = "";
+		if (keyword.length() > 0) {
+			query = "condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+		}
+
+		// 페이징 처리
+		String listUrl = cp + "/bbs/list.do";
+		String articleUrl = cp + "/bbs/article.do?page=" + current_page;
+		if (query.length() > 0) {
+			listUrl += "?" + query;
+			articleUrl += "&" + query;
+		}
+
+		String paging = myUtil.paging(current_page, total_page, listUrl);
+
+		// 데이터 전달하기
+		req.setAttribute("list", list);
+		req.setAttribute("paging", paging);
+		req.setAttribute("page", page);
+		req.setAttribute("current_page", current_page);
+		req.setAttribute("total_page", total_page);
+		req.setAttribute("dataCount", dataCount);
+		req.setAttribute("articleUrl", articleUrl);
+		req.setAttribute("condition", condition);
+		req.setAttribute("keyword", keyword);
+
 		forward(req, resp, VIEWS + "/list.jsp");
 	}
 
@@ -100,9 +182,14 @@ public class BoardServlet extends HttpServlet {
 		dto.setContent(req.getParameter("content"));
 		SessionInfo info = (SessionInfo) req.getSession().getAttribute("member");
 		dto.setUserId(info.getUserId());
-		System.out.println(dto);
 		try {
 			dao.insertBoard(dto);
+//			String title = dto.getSubject();
+//			for (int i = 0; i < 1000; i++) {
+//				dto.setSubject(title + (int) (Math.random() * 10000) + 1);
+//				dao.insertBoard(dto);
+//				dto.setSubject(title);
+//			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -112,6 +199,19 @@ public class BoardServlet extends HttpServlet {
 
 	// 게시글 보기
 	protected void article(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String cp = req.getContextPath();
+		BoardDAO dao = new BoardDAO();
+		try {
+			int num = Integer.parseInt(req.getParameter("num"));
+			BoardDTO dto = dao.readBoard(num);
+			System.out.println(dto);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(cp + "/bbs/list.do");
+		}
+		
+		//dto, page, condition, keyword
+		
 	}
 
 	// 게시글 수정
