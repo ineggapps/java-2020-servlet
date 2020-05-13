@@ -209,5 +209,5 @@ CREATE TABLE schedule (
 
 --로그인 점검용 SQL
  select * from member1 m1
- join member2 m2
+ left outer join member2 m2
  on m1.userId=m2.userId;
