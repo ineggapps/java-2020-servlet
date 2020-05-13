@@ -90,7 +90,7 @@ public class BoardServlet extends HttpServlet {
 		String page = req.getParameter("page");
 		int current_page = 1;
 		if (page != null) {
-			current_page = Integer.parseInt(page);
+			current_page = Integer.parseInt(page)>0?Integer.parseInt(page):1;
 		}
 
 		String condition = req.getParameter("condition");

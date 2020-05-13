@@ -75,7 +75,7 @@
 			<table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			   <tr height="35">
 				<td align="center">
-			        ${paging}
+			        ${dataCount==0?"등록된 게시물이 없습니다.":paging}
 				</td>
 			   </tr>
 			</table>
