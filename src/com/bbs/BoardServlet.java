@@ -280,7 +280,7 @@ public class BoardServlet extends HttpServlet {
 				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
 			}
 			
-			if (!dao.isAuthor(num, info.getUserId())) {
+			if (!dto.getUserId().equals(info.getUserId())) {
 				throw new Exception("작성자가 아닌데 수정을 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
 			}
 

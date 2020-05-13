@@ -431,41 +431,5 @@ public class BoardDAO {
 		}
 		return result;
 	}
-
-	public boolean isAuthor(int num, String userId) {
-		boolean result = false;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		String sql = "SELECT NVL(count(*),0) FROM bbs WHERE num = ? AND userId = ?";
-
-		try {
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, num);
-			pstmt.setString(2, userId);
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				if(rs.getInt(1)==1) {//결괏값이 1이어야만... 작성자 본인 것임!
-					result = true;
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally {
-			if(rs!=null) {
-				try {
-					rs.close();
-				} catch (Exception e2) {
-				}
-			}
-			if(pstmt!=null) {
-				try {
-					pstmt.close();
-				} catch (Exception e2) {
-				}
-			}
-		}
 		
-		return result;
-	}
-	
 }
