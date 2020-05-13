@@ -249,4 +249,120 @@ public class BoardDAO {
 		return dto;
 	}
 
+	public BoardDTO preReadBoard(int num, String condition, String keyword) {
+		BoardDTO dto = null;
+
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		StringBuilder sql = new StringBuilder("SELECT num, subject FROM bbs ");
+		int idx = 1;
+		try {
+			if (keyword != null && keyword.length() > 0) {
+				// 검색 조건이 있을 때
+				if (condition.equalsIgnoreCase("created")) {
+					sql.append(" WHERE TO_CHAR(created, 'YYYYMMDD') = ? ");
+				} else if (condition.equalsIgnoreCase("userName")) {
+					sql.append(" JOIN member1 m1 ON bbs.userId = m1.userId ");
+					sql.append(" WHERE INSTR(userName, ?) = 1 ");
+				} else {
+					// 기타
+					sql.append(" WHERE INSTR(" + condition + ", ?) > 0 ");
+				}
+				sql.append(" AND " );
+			}else {
+				sql.append(" WHERE ");
+			}
+			sql.append(" num > ? ");
+			sql.append(" ORDER BY num OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY");
+			System.out.println(sql.toString());
+			pstmt = conn.prepareStatement(sql.toString());
+			if (keyword != null && keyword.length() > 0) {
+				pstmt.setString(idx++, keyword);
+			}
+			pstmt.setInt(idx++, num);
+			rs = pstmt.executeQuery();
+
+			if (rs.next()) {
+				dto = new BoardDTO();
+				dto.setNum(rs.getInt("num"));
+				dto.setSubject(rs.getString("subject"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e2) {
+				}
+			}
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+
+		return dto;
+	}
+
+	public BoardDTO nextReadBoard(int num, String condition, String keyword) {
+		BoardDTO dto = null;
+
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		StringBuilder sql = new StringBuilder("SELECT num, subject FROM bbs ");
+		int idx = 1;
+		try {
+			if (keyword != null && keyword.length() > 0) {
+				// 검색 조건이 있을 때
+				if (condition.equalsIgnoreCase("created")) {
+					sql.append(" WHERE TO_CHAR(created, 'YYYYMMDD') = ? ");
+				} else if (condition.equalsIgnoreCase("userName")) {
+					sql.append(" JOIN member1 m1 ON bbs.userId = m1.userId ");
+					sql.append(" WHERE INSTR(userName, ?) = 1 ");
+				} else {
+					// 기타
+					sql.append(" WHERE INSTR(" + condition + ", ?) > 0 ");
+				}
+				sql.append(" AND " );
+			}else {
+				sql.append(" WHERE ");
+			}
+			sql.append(" num < ? ");
+			sql.append(" ORDER BY num DESC OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY");
+			System.out.println(sql.toString());
+			pstmt = conn.prepareStatement(sql.toString());
+			if (keyword != null && keyword.length() > 0) {
+				pstmt.setString(idx++, keyword);
+			}
+			pstmt.setInt(idx++, num);
+			rs = pstmt.executeQuery();
+
+			if (rs.next()) {
+				dto = new BoardDTO();
+				dto.setNum(rs.getInt("num"));
+				dto.setSubject(rs.getString("subject"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (Exception e2) {
+				}
+			}
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+
+	
+		return dto;
+	}
 }

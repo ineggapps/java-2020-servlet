@@ -43,52 +43,58 @@ function deleteBoard(num) {
 			<table style="width: 100%; margin: 20px auto 0px; border-spacing: 0px; border-collapse: collapse;">
 			<tr height="35" style="border-top: 1px solid #cccccc; border-bottom: 1px solid #cccccc;">
 			    <td colspan="2" align="center">
-				   제목입니다 ...
+				   ${dto.subject}
 			    </td>
 			</tr>
 			
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
 			    <td width="50%" align="left" style="padding-left: 5px;">
-			       이름 : 스프링
+			       이름 : ${dto.userName}
 			    </td>
 			    <td width="50%" align="right" style="padding-right: 5px;">
-			        2010-10-10 | 조회 1
+			        ${dto.created} | 조회 ${dto.hitCount}
 			    </td>
 			</tr>
 			
 			<tr style="border-bottom: 1px solid #cccccc;">
 			  <td colspan="2" align="left" style="padding: 10px 5px;" valign="top" height="200">
-			      내용 입니다 ...
+			     ${dto.content}
 			   </td>
-			</tr>
+			</tr> 
 			
+			<c:if test="${not empty preReadBoardDTO }">
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
 			    <td colspan="2" align="left" style="padding-left: 5px;">
-			       이전글 :
-
+			       이전글 : <a href="${articleUrl}&amp;num=${preReadBoardDTO.num}">${preReadBoardDTO.subject}</a>
 			    </td>
 			</tr>
+			</c:if>
 			
+			<c:if test="${not empty nextReadBoardDTO }">
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
 			    <td colspan="2" align="left" style="padding-left: 5px;">
-			       다음글 :
-
+			       다음글 : <a href="${articleUrl}&amp;num=${nextReadBoardDTO.num}">${nextReadBoardDTO.subject}</a>
 			    </td>
 			</tr>
-			<tr height="45">
+			</c:if>
+
+			<tr height="45"> 
+				<c:if test="${dto.userId==member.userId}">
 			    <td>
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/';">수정</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/update.do${query}';">수정</button>
 			          <button type="button" class="btn" onclick="deleteBoard('1');">삭제</button>
 			    </td>
+				</c:if>
 			
-			    <td align="right">
-			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/';">리스트</button>
+			    <td align="right" ${dto.userId!=member.userId?"colspan='2'":""}>
+			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/list.do${query}'">리스트</button>
 			    </td>
 			</tr>
 			</table>
         </div>
 
     </div>
+    
 </div>
 
 <div class="footer">
