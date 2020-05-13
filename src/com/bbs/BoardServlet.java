@@ -314,8 +314,10 @@ public class BoardServlet extends HttpServlet {
 			dto.setNum(num);
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
+			//시큐어 코딩
+			dto.setUserId(info.getUserId());
 			// 게시글 수정 반영
-			dao.updateBoard(dto,info.getUserId());
+			dao.updateBoard(dto);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

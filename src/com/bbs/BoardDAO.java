@@ -385,7 +385,7 @@ public class BoardDAO {
 		return dto;
 	}
 	
-	public int updateBoard(BoardDTO dto, String userId) {
+	public int updateBoard(BoardDTO dto) {
 		int result = 0;
 		PreparedStatement pstmt = null;
 		String sql = "UPDATE bbs SET subject=?, content=?  WHERE num = ? AND userId= ?";
@@ -394,7 +394,7 @@ public class BoardDAO {
 			pstmt.setString(1, dto.getSubject());
 			pstmt.setString(2, dto.getContent());
 			pstmt.setInt(3,dto.getNum());
-			pstmt.setString(4, userId);
+			pstmt.setString(4, dto.getUserId());
 			result = pstmt.executeUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();
