@@ -18,13 +18,15 @@
 
 <script type="text/javascript" src="<%=cp%>/resource/js/util.js"></script>
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery.min.js"></script>
-<script type="text/javascript">
+<script type="text/javascript"> 
+<c:if test="${sessionScope.member.userId=='admin' || sessionScope.member.userId==dto.userId}">
 function deleteBoard(num) {
 	if(confirm("게시물을 삭제 하시겠습니까 ?")) {
 		var url="<%=cp%>/bbs/delete.do${query}&num="+num;
 		location.href=url;
 	}
 }
+</c:if>
 </script>
 </head>
 <body>
