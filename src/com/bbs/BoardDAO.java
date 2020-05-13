@@ -415,9 +415,16 @@ public class BoardDAO {
 		PreparedStatement pstmt = null;
 		String sql = "DELETE FROM bbs WHERE num = ? AND userId = ?";
 		try {
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, num);
-			pstmt.setString(2,  userId);
+			if(!userId.equals("admin")) {//관리자가 아니면
+				pstmt = conn.prepareStatement(sql.toString());
+				pstmt.setInt(1, num);
+				pstmt.setString(2, userId);
+			}else {
+				//관리자는 삭제할 수 있다.
+				sql = "DELETE FROM bbs WHERE num = ?";
+				pstmt = conn.prepareStatement(sql.toString());
+				pstmt.setInt(1, num);
+			}
 			result = pstmt.executeUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();
