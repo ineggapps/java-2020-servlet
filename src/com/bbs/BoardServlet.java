@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpSession;
 
 import com.member.SessionInfo;
 
+//Tomcat 7.5부터 가능
+@WebServlet("/bbs/*")
 public class BoardServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -68,20 +71,43 @@ public class BoardServlet extends HttpServlet {
 		} else if (uri.indexOf("delete.do") != -1) {
 			// 게시글 지우기
 			delete(req, resp);
+		} else {
+//			resp.sendRedirect(req.getContextPath()+"/bbs/list.do");
 		}
 	}
 
+	private static final String VIEWS = "/WEB-INF/views/bbs";
+
 	// 게시글 목록
 	protected void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		forward(req, resp, VIEWS + "/list.jsp");
 	}
 
 	// 게시글 쓰기
 	protected void createdForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.setAttribute("mode", "created");
+		forward(req, resp, VIEWS + "/created.jsp");
 	}
 
 	// 게시글 등록처리
 	protected void createdSubmit(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		String cp = req.getContextPath();
+		BoardDAO dao = new BoardDAO();
+		// 등록을 위한 객체 생성
+		BoardDTO dto = new BoardDTO();
+		dto.setSubject(req.getParameter("subject"));
+		dto.setContent(req.getParameter("content"));
+		SessionInfo info = (SessionInfo) req.getSession().getAttribute("member");
+		dto.setUserId(info.getUserId());
+		System.out.println(dto);
+		try {
+			dao.insertBoard(dto);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		resp.sendRedirect(cp + "/bbs/list.do");
 	}
 
 	// 게시글 보기
@@ -90,6 +116,8 @@ public class BoardServlet extends HttpServlet {
 
 	// 게시글 수정
 	protected void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.setAttribute("mode", "update");
+		forward(req, resp, VIEWS + "/created.jsp");
 	}
 
 	// 게시글 수정처리

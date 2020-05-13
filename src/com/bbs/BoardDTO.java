@@ -5,6 +5,7 @@ public class BoardDTO {
 	private int listNum;
 	private String userId;
 	private String userName;
+	private String subject;
 	private String content;
 	private String created;
 	private int hitCount;
@@ -41,6 +42,14 @@ public class BoardDTO {
 		this.userName = userName;
 	}
 
+	public String getSubject() {
+		return subject;
+	}
+
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
 	public String getContent() {
 		return content;
 	}
@@ -64,5 +73,14 @@ public class BoardDTO {
 	public void setHitCount(int hitCount) {
 		this.hitCount = hitCount;
 	}
+
+	@Override
+	public String toString() {
+		return "BoardDTO [num=" + num + ", listNum=" + listNum + ", userId=" + userId + ", userName=" + userName
+				+ ", subject=" + subject + ", content=" + content + ", created=" + created + ", hitCount=" + hitCount
+				+ "]";
+	}
+	
+	
 
 }
