@@ -202,6 +202,7 @@ public class BoardServlet extends HttpServlet {
 	protected void article(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String cp = req.getContextPath();
 		BoardDAO dao = new BoardDAO();
+		MyUtil util = new MyUtil();
 		HttpSession session = req.getSession();
 		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
 
@@ -225,10 +226,7 @@ public class BoardServlet extends HttpServlet {
 			BoardDTO dto = dao.readBoard(num);
 
 			// 줄바꿈처리
-			String content = dto.getContent();
-			content = content.replaceAll("<", "&lt;");
-			content = content.replaceAll(">", "&lt;");
-			content = content.replaceAll("\n", "<br />");
+			String content = util.htmlSymbols(dto.getContent());
 			dto.setContent(content);//... 이걸 깜빡했구나
 
 			// 이전글, 다음글
