@@ -21,7 +21,7 @@
 <script type="text/javascript">
 function deleteBoard(num) {
 	if(confirm("게시물을 삭제 하시겠습니까 ?")) {
-		var url="<%=cp%>/";
+		var url="<%=cp%>/bbs/delete.do${query}&num="+num;
 		location.href=url;
 	}
 }
@@ -81,8 +81,8 @@ function deleteBoard(num) {
 			<tr height="45"> 
 				<c:if test="${dto.userId==member.userId}">
 			    <td>
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/update.do${query}';">수정</button>
-			          <button type="button" class="btn" onclick="deleteBoard('1');">삭제</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/update.do${query}&num=${dto.num}';">수정</button>
+			          <button type="button" class="btn" onclick="deleteBoard(${dto.num});">삭제</button>
 			    </td>
 				</c:if>
 			

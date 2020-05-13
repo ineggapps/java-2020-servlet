@@ -82,6 +82,7 @@ public class BoardServlet extends HttpServlet {
 
 	private static final String VIEWS = "/WEB-INF/views/bbs";
 	private static final String SESSION_INFO = "member";
+
 	// 게시글 목록
 	protected void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		BoardDAO dao = new BoardDAO();
@@ -220,7 +221,15 @@ public class BoardServlet extends HttpServlet {
 			String page = req.getParameter("page");
 
 			// 현재 글 읽기
+			dao.updateHitCount(num);
 			BoardDTO dto = dao.readBoard(num);
+
+			// 줄바꿈처리
+			String content = dto.getContent();
+			content = content.replaceAll("<", "&lt;");
+			content = content.replaceAll(">", "&lt;");
+			content = content.replaceAll("\n", "<br />");
+
 			// 이전글, 다음글
 			BoardDTO preReadBoardDTO = dao.preReadBoard(num, condition, keyword);
 			BoardDTO nextReadBoardDTO = dao.nextReadBoard(num, condition, keyword);
@@ -248,27 +257,93 @@ public class BoardServlet extends HttpServlet {
 	protected void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		req.setAttribute("mode", "update");
 		BoardDAO dao = new BoardDAO();
-		
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (req.getMethod().equalsIgnoreCase("GET") && keyword != null && keyword.length() > 0) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+		if (condition == null || condition.length() == 0) {
+			condition = "subject";
+			keyword = "";
+		}
+
 		try {
 			String page = req.getParameter("page");
 			int num = Integer.parseInt(req.getParameter("num"));
 			BoardDTO dto = dao.readBoard(num);
-			
+
+			String query = "?page=" + page;
+			if (keyword != null && keyword.length() > 0) {
+				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+			}
+
+			req.setAttribute("page", page);
 			req.setAttribute("dto", dto);
+			req.setAttribute("query", query);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		forward(req, resp, VIEWS + "/created.jsp");
 	}
 
 	// 게시글 수정처리
 	protected void updateSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		
+		String cp = req.getContextPath();
+		String query = req.getParameter("query");
+		if (query == null) {
+			query = "";
+		}
+		BoardDAO dao = new BoardDAO();
+		BoardDTO dto = new BoardDTO();
+		try {
+			int num = Integer.parseInt(req.getParameter("num"));
+			dto.setNum(num);
+			dto.setSubject(req.getParameter("subject"));
+			dto.setContent(req.getParameter("content"));
+			// 게시글 수정 반영
+			dao.updateBoard(dto);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		resp.sendRedirect(cp + "/bbs/list.do" + query);
 	}
 
 	// 게시글 지우기
 	protected void delete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		BoardDAO dao = new BoardDAO();
+		String cp = req.getContextPath();
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (req.getMethod().equalsIgnoreCase("GET") && keyword != null && keyword.length() > 0) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		String query = "";
+
+		try {
+			int num = Integer.parseInt(req.getParameter("num"));
+			String page = req.getParameter("page");
+			query = "?page=" + page;
+			if (keyword != null && keyword.length() > 0) {
+				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+			}
+			// 삭제 이전에 작성자가 요청한 것이 맞는지 확인하기
+			if (dao.isAuthor(num, info.getUserId()) == true) {
+				dao.deleteBoard(num);
+			} else {
+				throw new Exception("작성자가 아닌데 수정을 시도하였음.\n" + info.getUserId() + "이분이 범인!!");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		resp.sendRedirect(cp + "/bbs/list.do" + query);
 	}
 
 }

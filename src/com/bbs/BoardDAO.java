@@ -208,6 +208,28 @@ public class BoardDAO {
 
 		return list;
 	}
+	
+	public int updateHitCount(int num) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "UPDATE bbs SET hitCount = hitCount + 1 WHERE num=?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, num);
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return result;
+	}
+	
 
 	public BoardDTO readBoard(int num) {
 		BoardDTO dto = null;
@@ -274,7 +296,6 @@ public class BoardDAO {
 			}
 			sql.append(" num > ? ");
 			sql.append(" ORDER BY num OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY");
-			System.out.println(sql.toString());
 			pstmt = conn.prepareStatement(sql.toString());
 			if (keyword != null && keyword.length() > 0) {
 				pstmt.setString(idx++, keyword);
@@ -332,7 +353,6 @@ public class BoardDAO {
 			}
 			sql.append(" num < ? ");
 			sql.append(" ORDER BY num DESC OFFSET 0 ROWS FETCH FIRST 1 ROWS ONLY");
-			System.out.println(sql.toString());
 			pstmt = conn.prepareStatement(sql.toString());
 			if (keyword != null && keyword.length() > 0) {
 				pstmt.setString(idx++, keyword);
@@ -361,8 +381,89 @@ public class BoardDAO {
 				}
 			}
 		}
-
 	
 		return dto;
 	}
+	
+	public int updateBoard(BoardDTO dto) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "UPDATE bbs SET subject=?, content=?  WHERE num = ?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, dto.getSubject());
+			pstmt.setString(2, dto.getContent());
+			pstmt.setInt(3,dto.getNum());
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	public int deleteBoard(int num) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "DELETE FROM bbs WHERE num = ?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, num);
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return result;
+	}
+
+	public boolean isAuthor(int num, String userId) {
+		boolean result = false;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String sql = "SELECT NVL(count(*),0) FROM bbs WHERE num = ? AND userId = ?";
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, num);
+			pstmt.setString(2, userId);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				if(rs.getInt(1)==1) {//결괏값이 1이어야만... 작성자 본인 것임!
+					result = true;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(rs!=null) {
+				try {
+					rs.close();
+				} catch (Exception e2) {
+				}
+			}
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		
+		return result;
+	}
+	
 }
