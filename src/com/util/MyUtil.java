@@ -46,6 +46,7 @@ public class MyUtil {
 			currentPageSetup=currentPageSetup-numPerBlock;
 		}
 
+		//jsp 헤더 부분에 있어야 하지만 .. 수업 편의상...
 		sb.append("<style type='text/css'>");
 		sb.append("#paginate {clear:both;font:12px \"맑은 고딕\",NanumGothic,돋움,Dotum,AppleGothic;padding:15px 0px 0px 0px;text-align:center;height:28px;white-space:nowrap;}");
 		sb.append("#paginate a {border:1px solid #ccc;height:28px;color:#000000;text-decoration:none;padding:4px 7px 4px 7px;margin-left:3px;line-height:normal;vertical-align:middle;outline:none; select-dummy: expression(this.hideFocus=true);}");

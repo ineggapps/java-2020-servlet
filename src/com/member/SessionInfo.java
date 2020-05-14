@@ -20,4 +20,11 @@ public class SessionInfo {
 		this.userName = userName;
 	}
 
+	@Override
+	public String toString() {
+		return "SessionInfo [userId=" + userId + ", userName=" + userName + "]";
+	}
+	
+	
+
 }
