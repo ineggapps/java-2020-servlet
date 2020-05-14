@@ -2,6 +2,9 @@ package com.notice;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -12,8 +15,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import com.bbs.BoardDTO;
 import com.member.SessionInfo;
 import com.util.MyUploadServlet;
+import com.util.MyUtil;
 
 @WebServlet("/notice/*")
 @MultipartConfig // Super class에서 명시했다고 해서 상속받는 클래스에서 생략할 수 있는 것은 아님
@@ -99,6 +104,87 @@ public class NoticeServlet extends MyUploadServlet {
 
 	protected void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 글 목록
+		NoticeDAO dao = new NoticeDAO();
+		MyUtil myUtil = new MyUtil();
+		String cp = req.getContextPath();
+		String page = req.getParameter("page");
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		}
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		int dataCount;
+		if (condition.length() > 0 && keyword.length() > 0) {
+			// 검색했을 경우
+			dataCount = dao.dataCount(condition, keyword);
+		} else {
+			dataCount = dao.dataCount();
+		}
+		String r = req.getParameter("rows");
+		int rows = r!=null?Integer.parseInt(r):10;
+		int total_page = myUtil.pageCount(rows, dataCount);
+		if (current_page > total_page) {
+			current_page = total_page;
+		}
+
+		int offset = (current_page - 1) * rows;
+		if (offset < 0) {
+			offset = 0;
+		}
+
+		List<NoticeDTO> list;
+		if (keyword.length() > 0) {
+			list = dao.listNotice(offset, rows, condition, keyword);
+		} else {
+			list = dao.listNotice(offset, rows);
+		}
+
+		// 리스트 글 번호 만들기
+		int listNum, n = 0;
+		for (NoticeDTO dto : list) {
+			listNum = dataCount - (offset + n);
+			dto.setListNum(listNum);
+			n++;
+		}
+
+		String query = "";
+		if (keyword.length() > 0) {
+			query = "condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8"); 
+		}
+		query +=  "&rows=" + rows;
+
+		// 페이징 처리
+		String listUrl = cp + "/notice/list.do";
+		String articleUrl = cp + "/notice/article.do?page=" + current_page;
+		if (query.length() > 0) {
+			listUrl += "?" + query;
+			articleUrl += "&" + query;
+		}
+
+		String paging = myUtil.paging(current_page, total_page, listUrl);
+
+		// 데이터 전달하기
+		req.setAttribute("list", list);
+		req.setAttribute("paging", paging);
+		req.setAttribute("page", page);
+		req.setAttribute("current_page", current_page);
+		req.setAttribute("total_page", total_page);
+		req.setAttribute("dataCount", dataCount);
+		req.setAttribute("articleUrl", articleUrl);
+		req.setAttribute("condition", condition);
+		req.setAttribute("keyword", keyword);
+		req.setAttribute("rows", rows);
+
 		forward(req, resp, VIEWS + "/notice/list.jsp");
 	}
 
@@ -149,7 +235,16 @@ public class NoticeServlet extends MyUploadServlet {
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
 
-			dao.insertNotice(dto);
+			for (int i = 0 ;i<100;i++) {
+				int random = (int)(Math.random()*1000)+1;
+				String subject =  dto.getSubject() + random;
+				String content = dto.getContent()+ random;
+				
+				dto.setSubject(subject);
+				dto.setContent(content);
+				dao.insertNotice(dto);
+				
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

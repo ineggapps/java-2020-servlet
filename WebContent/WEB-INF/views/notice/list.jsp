@@ -72,23 +72,25 @@
 			      <th width="50" style="color: #787878;">다운</th>
 			  </tr>
 			 
+			 <c:forEach var="dto" items="${list}">
 			  <tr align="center" height="35" style="border-bottom: 1px solid #cccccc;"> 
-			      <td>1</td>
+			      <td>${dto.listNum}</td>
 			      <td align="left" style="padding-left: 10px;">
-			           <a href="#">제목입니다...</a>
+			           <a href="#">${dto.subject}</a>
 			      </td>
-			      <td>스프링</td>
-			      <td>2010-10-10</td>
-			      <td>1</td>
-			      <td>&nbsp;</td>
+			      <td>${dto.userName}</td>
+			      <td>${dto.created}</td>
+			      <td>${dto.hitCount}</td>
+			      <td><a href="<%=cp %>/notice/${dto.saveFilename}">자료</a></td>
 			  </tr>
+			 </c:forEach>
 
 			</table>
 			 
 			<table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			   <tr height="35">
 				<td align="center">
-			        1 2 3
+			        ${paging}
 				</td>
 			   </tr>
 			</table>
