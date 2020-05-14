@@ -20,14 +20,11 @@ public class FileManager {
 	public static boolean doFiledownload(String saveFilename, String originalFilename, String pathname, HttpServletResponse resp) {
 		boolean flag=false;
 		
-		if(pathname==null || saveFilename==null || saveFilename.length()==0 ||
-				originalFilename==null || originalFilename.length()==0) {
-			return flag;
-		}
+		BufferedInputStream bis = null;
+		OutputStream os = null;
 		
 		try {
-			originalFilename=new String(
-					originalFilename.getBytes("euc-kr"), "8859_1");
+			originalFilename=new String(	originalFilename.getBytes("euc-kr"), "8859_1");
 			pathname=pathname+File.separator+saveFilename;
 			File f=new File(pathname);
 			if(! f.exists()) {
@@ -37,30 +34,39 @@ public class FileManager {
 			// 클라이언트에게 전송할 문서타입이 스트림이라고 설정
 			resp.setContentType("application/octet-stream");
 			
-			// 파일명은 헤더에
-			resp.setHeader("Content-disposition",
-					"attachment;filename="+originalFilename);
+			// 파일명은 헤더에 실어서 보냄
+			resp.setHeader("Content-disposition", "attachment;filename="+originalFilename);
 			
 			// 클라이언트에게 파일의 내용을 전송
-			byte[] b=new byte[1024];
-			BufferedInputStream bis=
-					new BufferedInputStream(
-							new FileInputStream(f));
+			byte[] b = new byte[1024];
+			bis = new BufferedInputStream(new FileInputStream(f));
 			
 			// 클라이언트에게 전송할 출력 스트림
-			OutputStream os=resp.getOutputStream();
+			os=resp.getOutputStream();
 			
 			int n;
-			while((n=bis.read(b, 0, b.length))!=-1) {
+			while((n = bis.read(b)) != -1) {
 				os.write(b, 0, n);
 			}
 			os.flush();
-			os.close();
-			bis.close();
 			
 			flag=true;
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
+		} finally {
+			if(bis != null) {
+				try {
+					bis.close();
+				} catch (Exception e2) {
+				}
+			}
+			
+			if(os != null) {
+				try {
+					os.close();
+				} catch (Exception e2) {
+				}
+			}
 		}
 		
 		return flag;
@@ -75,10 +81,8 @@ public class FileManager {
 	public static String doFilerename(String pathname, String filename) {
 		String newname="";
 		
-    	String fileExt = filename.substring(
-    			       filename.lastIndexOf("."));
-    	String s = String.format(
-    			"%1$tY%1$tm%1$td%1$tH%1$tM%1$tS", 
+    	String fileExt = filename.substring(filename.lastIndexOf("."));
+    	String s = String.format("%1$tY%1$tm%1$td%1$tH%1$tM%1$tS", 
 				 Calendar.getInstance());
     	s += System.nanoTime();
     	s += fileExt;
@@ -104,8 +108,17 @@ public class FileManager {
 	public static boolean doFiledelete(String pathname, String filename) {
 		String path=pathname+File.separator+filename;
 		
+		return doFiledelete(path);
+	}
+
+	/**
+	 * 파일 삭제
+	 * @param pathname 파일이 저장된 경로 및 삭제할 파일명
+	 * @return 파일 삭제 성공 여부
+	 */
+	public static boolean doFiledelete(String pathname) {
 		try {
-			File f=new File(path);
+			File f=new File(pathname);
 			
 			if(! f.exists()) // 파일이 없으면
 				return false;
