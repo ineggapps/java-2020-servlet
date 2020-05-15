@@ -144,9 +144,9 @@ public class NoticeServlet extends MyUploadServlet {
 
 		List<NoticeDTO> list;
 		if (keyword.length() > 0) {
-			list = dao.listBoard(offset, rows, condition, keyword);
+			list = dao.listNotice(offset, rows, condition, keyword);
 		} else {
-			list = dao.listBoard(offset, rows);
+			list = dao.listNotice(offset, rows);
 		}
 
 		// 리스트 글 번호 만들기

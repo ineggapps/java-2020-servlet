@@ -113,9 +113,9 @@ public class NoticeDAO {
 	
 	
 	//게시물 목록 조회하기
-	public List<NoticeDTO> listBoard(int offset, int rows){
+	public List<NoticeDTO> listNotice(int offset, int rows){
 		List<NoticeDTO> list = new ArrayList<>();
-		String sql = "SELECT num, notice, n.userId, userName, subject, content, saveFilename, hitCount, TO_CHAR(created, 'YYYY-MM-DD') created FROM notice n "
+		String sql = "SELECT num, notice, n.userId, userName, subject, content, saveFilename, hitCount, created FROM notice n "
 				+ "JOIN member1 m1 ON n.userId = m1.userId " + " ORDER BY num DESC OFFSET ? ROWS FETCH FIRST ? ROWS ONLY";
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -156,14 +156,14 @@ public class NoticeDAO {
 	}
 	
 	//게시글 조회하기 (검색글 조회)
-	public List<NoticeDTO> listBoard(int offset, int rows, String condition, String keyword){
+	public List<NoticeDTO> listNotice(int offset, int rows, String condition, String keyword){
 		List<NoticeDTO> list = new ArrayList<NoticeDTO>();
 		// 검색 방식: created, name, 기타
 
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		StringBuilder sql = new StringBuilder(
-				"SELECT num, notice, n.userId, userName, subject, content, savefilename, hitCount, TO_CHAR(created,'YYYY-MM-DD') created FROM notice n "
+				"SELECT num, notice, n.userId, userName, subject, content, saveFilename, hitCount, created FROM notice n "
 						+ "JOIN member1 m1 ON n.userId = m1.userId " + " WHERE ");
 		try {
 			if (condition.equalsIgnoreCase("created")) {
