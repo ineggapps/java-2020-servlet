@@ -2,7 +2,9 @@ package com.photo;
 
 public class PhotoDTO {
 	private int num;
+	private int listNum;
 	private String userId;
+	private String userName;
 	private String subject;
 	private String content;
 	private String imageFilename;
@@ -12,11 +14,21 @@ public class PhotoDTO {
 	}
 
 	public PhotoDTO(String userId, String subject, String content, String imageFilename) {
-		//insert할 때 간단하게 만들기
+		// insert할 때 간단하게 만들기
 		this.userId = userId;
 		this.subject = subject;
 		this.content = content;
 		this.imageFilename = imageFilename;
+	}
+
+	public PhotoDTO(int num, String userId, String subject, String content, String imageFilename, String created) {
+		// DB에서 꺼내오는 경우
+		this.num = num;
+		this.userId = userId;
+		this.subject = subject;
+		this.content = content;
+		this.imageFilename = imageFilename;
+		this.created = created;
 	}
 
 	public int getNum() {
@@ -27,12 +39,28 @@ public class PhotoDTO {
 		this.num = num;
 	}
 
+	public int getListNum() {
+		return listNum;
+	}
+
+	public void setListNum(int listNum) {
+		this.listNum = listNum;
+	}
+
 	public String getUserId() {
 		return userId;
 	}
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 
 	public String getSubject() {

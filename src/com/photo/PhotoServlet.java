@@ -2,6 +2,8 @@ package com.photo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -14,9 +16,10 @@ import javax.servlet.http.Part;
 
 import com.member.SessionInfo;
 import com.util.MyUploadServlet;
+import com.util.MyUtil;
 
 @WebServlet("/photo/*")
-@MultipartConfig //이거 안 쓰면 파일 업로드 실패한다니깐?.. 상속받는다고 하더라도 언급하는 거 잊지 말기
+@MultipartConfig // 이거 안 쓰면 파일 업로드 실패한다니깐?.. 상속받는다고 하더라도 언급하는 거 잊지 말기
 public class PhotoServlet extends MyUploadServlet {
 
 	// CONTEXT
@@ -30,7 +33,7 @@ public class PhotoServlet extends MyUploadServlet {
 	private static final String MODE_CREATED = "created";
 	private static final String MODE_UPDATE = "update";
 
-	// PAGE
+	// API
 	private static final String API_LIST = "list.do";
 	private static final String API_CREATED = "created.do";
 	private static final String API_CREATED_OK = "created_ok.do";
@@ -39,25 +42,46 @@ public class PhotoServlet extends MyUploadServlet {
 	private static final String API_DELETE = "delete.do";
 	private static final String API_DELETE_PHOTO = "deletePhoto.do";
 
+	// JSP
+	private static final String JSP_LIST = "list.jsp";
+	private static final String JSP_CREATED = "created.jsp";
+	private static final String JSP_UPDATE = JSP_CREATED;
+	private static final String JSP_ARTICLE = "article.jsp";
+
 	// PARAM
 	private static final String PARAM_SUBJECT = "subject";
 	private static final String PARAM_CONTENT = "content";
-	private static final String PARAM_IMAGE_FILENAME = "imageFilename";
+	private static final String PARAM_PAGE = "page";
+	private static final String PARAM_CURRENT_PAGE = "current_page";
+	private static final String PARAM_TOTAL_PAGE = "total_page";
+	private static final String PARAM_DATA_COUNT = "dataCount";
+	private static final String PARAM_LIST = "list";
+	private static final String PARAM_IMAGE_PATH = "image_path";
 
-	// URI
-	private String pathname;
-	private String contextPath;
+	// SEARCH
+	private static final String CONDITION = "condition";
+	private static final String KEYWORD = "keyword";
+	private static final String CONDITION_CREATED = "created";
+	private static final String CONDITION_SUBJECT = "subject";
+	private static final String CONDITION_CONTENT = "content";
+	private static final String CONDITION_USERNAME = "username";
 
 	// ETC
 	private final static String SAVE_FILENAME = "saveFilename";
 
+	// URI
+	private String pathname;
+	private String contextPath;
+	private String imagePath;
+
 	@Override
 	protected void process(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		req.setCharacterEncoding("utf-8");//POST 한글 처리방식
+		req.setCharacterEncoding("utf-8");// POST 한글 처리방식
 		String uri = req.getRequestURI();
 		String root = req.getSession().getServletContext().getRealPath("/");// 실제 물리 경로 구하기
 		pathname = root + "uploads" + File.separator + "photo";// 물리 경로 + 업로드되는 곳
 		contextPath = req.getContextPath();
+		imagePath = contextPath + "/uploads/photo";
 		SessionInfo info = getSessionInfo(req.getSession());
 
 		if (info == null) {
@@ -83,11 +107,53 @@ public class PhotoServlet extends MyUploadServlet {
 	}
 
 	protected void list(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String path = VIEWS + "/" + JSP_LIST;
+		PhotoDAO dao = new PhotoDAO();
+		MyUtil util = new MyUtil();
+		// 검색 파라미터 불러오고 정리하기
+		Map<String, Object> attributes = new HashMap<>();
+		String condition = req.getParameter(CONDITION);
+		String keyword = req.getParameter(KEYWORD);
+		String page = req.getParameter(PARAM_PAGE);
+		attributes.put(CONDITION, condition);
+		attributes.put(KEYWORD, keyword);
+		attributes.put(PARAM_PAGE, page);
+		checkSearchParameter(condition, keyword);
 
+		List<PhotoDTO> list;
+		// 검색여부 확인
+		int currentPage = isNumeric(page) ? Integer.parseInt(page) : 1;
+		int dataCount = 0;
+		int rows = 6;
+		int offset = (currentPage - 1) * rows;
+		if (isSearchMode(attributes)) {
+			// 검색모드인 경우
+			dataCount = dao.dataCount((String) attributes.get(CONDITION), (String) attributes.get(KEYWORD));
+			list = dao.listPhoto(offset, rows, condition, keyword);
+		} else {
+			dataCount = dao.dataCount();
+			list = dao.listPhoto(offset, rows);
+		}
+		int listNum, n = 0;
+		for (PhotoDTO dto : list) {
+			listNum = dataCount - (offset + n);
+			dto.setListNum(listNum);
+		}
+		int totalPage = util.pageCount(rows, dataCount);
+		attributes.put(PARAM_DATA_COUNT, dataCount + "");
+		attributes.put(CONDITION, condition);
+		attributes.put(PARAM_CURRENT_PAGE, currentPage + "");
+		attributes.put(PARAM_TOTAL_PAGE, totalPage + "");
+		attributes.put(PARAM_LIST, list);
+		attributes.put(PARAM_IMAGE_PATH, imagePath);
+
+		// 기본 파라미터 setAttribute하기
+		setAttributes(req, attributes);
+		forward(req, resp, path);
 	}
 
 	protected void createdForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		String path = VIEWS + "/created.jsp";
+		String path = VIEWS + "/" + JSP_CREATED;
 		// 포워딩 처리
 		req.setAttribute(MODE, MODE_CREATED);
 		forward(req, resp, path);
@@ -143,6 +209,66 @@ public class PhotoServlet extends MyUploadServlet {
 			return (SessionInfo) o;
 		}
 		return null;
+	}
+
+	private void checkSearchParameter(String condition, String keyword) {
+		if (condition == null) {
+			condition = CONDITION_SUBJECT;
+		}
+
+		if (keyword == null || keyword.length() == 0) {
+			keyword = "";
+		}
+	}
+
+	private void setAttributes(HttpServletRequest req, Map<String, Object> attributes) {
+		if (req == null || attributes == null) {
+			return;
+		}
+		for (String key : attributes.keySet()) {
+			req.setAttribute(key, attributes.getOrDefault(key, ""));
+		}
+	}
+
+	private boolean isSearchMode(Map<String, Object> attributes) {
+		try {
+			if (attributes == null) {
+				return false;
+			}
+			String keyword = (String) attributes.get(KEYWORD);
+			if (keyword != null && keyword.length() > 0) {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return false;
+	}
+
+	private boolean isNumeric(String str) {
+		try {
+			Integer.parseInt(str);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private String makeQuery(Map<String, Object> attributes) {
+		StringBuilder query = new StringBuilder();
+		int idx = 0;
+		for (String key : attributes.keySet()) {
+			Object value = attributes.getOrDefault(key, "");
+			if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Double
+					|| value instanceof Float) {
+				if (idx++ > 0) {
+					query.append("&");
+				}
+				query.append(key + "=" + value);
+			}
+		}
+		return "?" + query.toString();
 	}
 
 }
