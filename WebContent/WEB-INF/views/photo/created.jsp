@@ -36,8 +36,7 @@
             return;
         }
 
-   		f.action="<%=cp%>/bbs/${mode}_ok.do";
-
+   		f.action="<%=cp%>/photo/${mode}_ok.do";
         f.submit();
     }
 </script>
@@ -55,7 +54,7 @@
         </div>
         
         <div>
-			<form name="boardForm" method="post">
+			<form name="boardForm" method="post" enctype="multipart/form-data">
 			  <table style="width: 100%; margin: 20px auto 0px; border-spacing: 0px; border-collapse: collapse;">
 			  <tr align="left" height="40" style="border-top: 1px solid #cccccc; border-bottom: 1px solid #cccccc;"> 
 			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">제&nbsp;&nbsp;&nbsp;&nbsp;목</td>
@@ -77,8 +76,28 @@
 			        <textarea name="content" rows="12" class="boxTA" style="width: 95%;">${dto.content}</textarea>
 			      </td>
 			  </tr>
+			  
+			  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
+			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">첨부</td>
+			      <td style="padding-left:10px;"> 
+			          <input type="file" name="upload" class="boxTF" size="53"  style="height:25px;"/>
+			      </td>
+			  </tr>
+			  
+			  <c:if test="${mode=='update'}">
+			  <%-- 글 수정일 때만 보이는 영역 --%>
+				  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
+				      <td width="100" bgcolor="#eeeeee" style="text-align: center;">첨부된 파일</td>
+				      <td style="padding-left:10px;"> 
+				          <c:if test="${not empty dto.saveFilename }">
+				          ${dto.originalFilename } | <a href="javascript:deleteFile('${dto.num}')">삭제</a>
+				          </c:if>
+				      </td>
+				  </tr>
+			  </c:if>
+			  
 			  </table>
-			
+			  
 			  <table style="width: 100%; border-spacing: 0px;">
 			     <tr height="45"> 
 			      <td align="center" >
