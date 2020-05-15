@@ -47,7 +47,7 @@
 			<table style="width: 100%; margin-top: 20px; border-spacing: 0;">
 			   <tr height="35">
 			      <td align="left" width="50%">
-			          1개(1/1 페이지)
+			          ${dataCount}개(${current_page}/${total_page} 페이지)
 			      </td>
 			      <td align="right">
 			          <select name="rows" class="selectField" onchange="listNotice()">
@@ -57,6 +57,9 @@
 			          		<option value="30" ${rows==30 ? "selected='selected' ": "" }>30개씩 출력</option>
 			          		<option value="50" ${rows==50 ? "selected='selected' ": "" }>50개씩 출력</option>
 			          </select>
+			          <input type="hidden" name="page" value="${page}" />
+			          <input type="hidden" name="condition" value="${condition}" />
+			          <input type="hidden" name="keyword" value="${keyword}" />
 			      </td>
 			   </tr>
 			</table>
@@ -72,16 +75,40 @@
 			      <th width="50" style="color: #787878;">다운</th>
 			  </tr>
 			 
-			 <c:forEach var="dto" items="${list}">
+			 <c:forEach var="dto" items="${listNotice}">
 			  <tr align="center" height="35" style="border-bottom: 1px solid #cccccc;"> 
-			      <td>${dto.listNum}</td>
+			      <td><span style="background:#ED4C00; color:#FFF;">공지</span></td>
 			      <td align="left" style="padding-left: 10px;">
 			           <a href="${articleUrl}&amp;num=${dto.num}">${dto.subject}</a>
 			      </td>
 			      <td>${dto.userName}</td>
 			      <td>${dto.created}</td>
 			      <td>${dto.hitCount}</td>
-			      <td><a href="<%=cp %>/notice/${dto.saveFilename}">자료</a></td>
+			      <td>
+				      <c:if test="${not empty dto.saveFilename }">
+					      <a href="<%=cp %>/notice/download.do?num=${dto.saveFilename}"><img src="<%=cp %>/resource/images/disk.gif" border="0" style="margin-top:1px;" /></a>
+				      </c:if>
+			      </td>
+			  </tr>
+			 </c:forEach>
+
+			 <c:forEach var="dto" items="${list}">
+			  <tr align="center" height="35" style="border-bottom: 1px solid #cccccc;"> 
+			      <td>${dto.listNum}</td>
+			      <td align="left" style="padding-left: 10px;">
+			           <a href="${articleUrl}&amp;num=${dto.num}">${dto.subject}</a>
+			           <c:if test="${dto.gap<1}">
+			           	<img src="<%=cp %>/resource/images/new.gif" alt="new" />
+			           </c:if>
+			      </td>
+			      <td>${dto.userName}</td>
+			      <td>${dto.created}</td>
+			      <td>${dto.hitCount}</td>
+			      <td>
+				      <c:if test="${not empty dto.saveFilename }">
+					      <a href="<%=cp %>/notice/download.do?num=${dto.saveFilename}"><img src="<%=cp %>/resource/images/disk.gif" border="0" style="margin-top:1px;" /></a>
+				      </c:if>
+			      </td>
 			  </tr>
 			 </c:forEach>
 
@@ -90,7 +117,12 @@
 			<table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			   <tr height="35">
 				<td align="center">
-			        ${paging}
+					<c:if test="${dataCount==0}">
+						게시물이 존재하지 않습니다.				
+					</c:if>
+					<c:if test="${dataCount>0}">
+				        ${paging}
+					</c:if>
 				</td>
 			   </tr>
 			</table>
@@ -103,12 +135,13 @@
 			      <td align="center">
 			          <form name="searchForm" action="<%=cp%>/notice/list.do" method="post">
 			              <select name="condition" class="selectField">
-			                  <option value="subject">제목</option>
-			                  <option value="userName">작성자</option>
-			                  <option value="content">내용</option>
-			                  <option value="created">등록일</option>
+			                  <option value="subject" ${condition=="subject"?"selected='selected'":""}>제목</option>
+			                  <option value="userName" ${condition=="userName"?"selected='selected'":""}>작성자</option>
+			                  <option value="content" ${condition=="content"?"selected='selected'":""}>내용</option>
+			                  <option value="created" ${condition=="created"?"selected='selected'":""}>등록일</option>
 			            </select>
-			            <input type="text" name="keyword" class="boxTF">
+			            <input type="text" name="keyword" class="boxTF" value="${keyword}" >
+			            <input type="hidden" name="rows" value="${rows}" />
 			            <button type="button" class="btn" onclick="searchList()">검색</button>
 			        </form>
 			      </td>

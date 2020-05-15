@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
-import com.bbs.BoardDTO;
 import com.member.SessionInfo;
 import com.util.MyUploadServlet;
 import com.util.MyUtil;
@@ -111,6 +112,8 @@ public class NoticeServlet extends MyUploadServlet {
 		int current_page = 1;
 		if (page != null) {
 			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		} else {
+			page = "1";
 		}
 
 		String condition = req.getParameter("condition");
@@ -131,7 +134,7 @@ public class NoticeServlet extends MyUploadServlet {
 			dataCount = dao.dataCount();
 		}
 		String r = req.getParameter("rows");
-		int rows = r!=null?Integer.parseInt(r):10;
+		int rows = r != null ? Integer.parseInt(r) : 10;
 		int total_page = myUtil.pageCount(rows, dataCount);
 		if (current_page > total_page) {
 			current_page = total_page;
@@ -142,6 +145,7 @@ public class NoticeServlet extends MyUploadServlet {
 			offset = 0;
 		}
 
+		// 일반 공지사항 게시글
 		List<NoticeDTO> list;
 		if (keyword.length() > 0) {
 			list = dao.listNotice(offset, rows, condition, keyword);
@@ -149,23 +153,47 @@ public class NoticeServlet extends MyUploadServlet {
 			list = dao.listNotice(offset, rows);
 		}
 
+		// 공지 박제글
+//		if(current_page==1) {			
+		List<NoticeDTO> listNotice = null;
+		listNotice = dao.listNotice();
+		for (NoticeDTO dto : listNotice) {
+			dto.setCreated(dto.getCreated().substring(0, 10));
+		}
+//		}
+
+		// GAP (시차 계산하기)
+		long gap;
+		Date curDate = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 		// 리스트 글 번호 만들기
 		int listNum, n = 0;
 		for (NoticeDTO dto : list) {
 			listNum = dataCount - (offset + n);
 			dto.setListNum(listNum);
+			try {
+				Date date = sdf.parse(dto.getCreated());
+//				gap = (curDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);//하루 단위로 변환
+				gap = (curDate.getTime() - date.getTime()) / (1000 * 60 * 60);// 시간 단위로 변환
+				dto.setGap(gap);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			dto.setCreated(dto.getCreated().substring(0, 10));
 			n++;
 		}
 
 		String query = "";
 		if (keyword.length() > 0) {
-			query = "condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8"); 
+			query = "condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
 		}
-		query +=  "&rows=" + rows;
+		query += "&rows=" + rows;
 
 		// 페이징 처리
 		String listUrl = cp + "/notice/list.do";
-		String articleUrl = cp + "/notice/article.do?page=" + current_page;
+		String articleUrl = cp + "/notice/article.do?page=" + current_page + "&rows="+rows;
 		if (query.length() > 0) {
 			listUrl += "?" + query;
 			articleUrl += "&" + query;
@@ -175,6 +203,7 @@ public class NoticeServlet extends MyUploadServlet {
 
 		// 데이터 전달하기
 		req.setAttribute("list", list);
+		req.setAttribute("listNotice", listNotice);
 		req.setAttribute("paging", paging);
 		req.setAttribute("page", page);
 		req.setAttribute("current_page", current_page);
@@ -221,7 +250,7 @@ public class NoticeServlet extends MyUploadServlet {
 			// 파일 업로드
 			Part p = req.getPart("upload");
 			Map<String, String> map = doFileUpload(p, pathname);
-			if (map != null) {//파일이 업로드되고 존재하는 경우에만
+			if (map != null) {// 파일이 업로드되고 존재하는 경우에만
 				dto.setSaveFilename(map.get(SAVE_FILENAME));
 				dto.setOriginalFilename(map.get(ORIGINAL_FILENAME));
 				dto.setFileSize(p.getSize());
@@ -234,17 +263,7 @@ public class NoticeServlet extends MyUploadServlet {
 			dto.setUserId(info.getUserId());
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
-
-			for (int i = 0 ;i<100;i++) {
-				int random = (int)(Math.random()*1000)+1;
-				String subject =  dto.getSubject() + random;
-				String content = dto.getContent()+ random;
-				
-				dto.setSubject(subject);
-				dto.setContent(content);
-				dao.insertNotice(dto);
-				
-			}
+			dao.insertNotice(dto);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -133,10 +133,7 @@ public class NoticeDAO {
 				dto.setUserName(rs.getString("userName"));
 				dto.setSubject(rs.getString("subject"));
 				dto.setContent(rs.getString("content"));
-				String saveFilename = rs.getString("saveFilename");
-				if(saveFilename!=null) {					
-					dto.setSaveFilename(saveFilename);
-				}
+				dto.setSaveFilename( rs.getString("saveFilename"));
 				dto.setHitCount(rs.getInt("hitCount"));
 				dto.setCreated(rs.getString("created"));
 				list.add(dto);
@@ -188,10 +185,7 @@ public class NoticeDAO {
 				dto.setUserName(rs.getString("userName"));
 				dto.setSubject(rs.getString("subject"));
 				dto.setContent(rs.getString("content"));
-				String saveFilename = rs.getString("saveFilename");
-				if(saveFilename!=null) {					
-					dto.setSaveFilename(saveFilename);
-				}
+				dto.setSaveFilename( rs.getString("saveFilename"));
 				dto.setHitCount(rs.getInt("hitCount"));
 				dto.setCreated(rs.getString("created"));
 				list.add(dto);
@@ -213,6 +207,44 @@ public class NoticeDAO {
 			}
 		}
 
+		return list;
+	}
+	
+	//상단 박제 공지글 가져오기
+	public List<NoticeDTO> listNotice(){
+		List<NoticeDTO> list = new ArrayList<>();
+		String sql = "SELECT num, notice, n.userId, userName, subject, content, saveFilename, hitCount, TO_CHAR(created,'YYYY-MM-DD') created FROM notice n "
+				+ "JOIN member1 m1 ON n.userId = m1.userId " + " WHERE notice=1 ORDER BY num DESC ";
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				NoticeDTO dto = new NoticeDTO();
+				dto.setNum(rs.getInt("num"));
+				dto.setNotice(rs.getInt("notice"));
+				dto.setUserId(rs.getString("userId"));
+				dto.setUserName(rs.getString("userName"));
+				dto.setSubject(rs.getString("subject"));
+				dto.setContent(rs.getString("content"));
+				dto.setSaveFilename( rs.getString("saveFilename"));
+				dto.setHitCount(rs.getInt("hitCount"));
+				dto.setCreated(rs.getString("created"));
+				list.add(dto);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		
 		return list;
 	}
 	
