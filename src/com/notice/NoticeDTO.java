@@ -121,4 +121,14 @@ public class NoticeDTO {
 		this.gap = gap;
 	}
 
+	@Override
+	public String toString() {
+		return "NoticeDTO [num=" + num + ", listNum=" + listNum + ", notice=" + notice + ", userId=" + userId
+				+ ", userName=" + userName + ", subject=" + subject + ", content=" + content + ", created=" + created
+				+ ", hitCount=" + hitCount + ", saveFilename=" + saveFilename + ", originalFilename=" + originalFilename
+				+ ", fileSize=" + fileSize + ", gap=" + gap + "]";
+	}
+	
+	
+
 }

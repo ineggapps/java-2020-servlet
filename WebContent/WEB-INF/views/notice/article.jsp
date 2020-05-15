@@ -42,47 +42,59 @@ function deleteBoard(num) {
         <div>
 			<table style="width: 100%; margin: 20px auto 0px; border-spacing: 0px; border-collapse: collapse;">
 			<tr height="35" style="border-top: 1px solid #cccccc; border-bottom: 1px solid #cccccc;">
-			    <td colspan="2" align="center">
-				   제목입니다 ...
+			    <td colspan="2" align="center" style="word-break: break-all;">
+				   ${dto.subject}
 			    </td>
 			</tr>
 			
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
 			    <td width="50%" align="left" style="padding-left: 5px;">
-			       이름 : 스프링
+			       이름 : ${dto.userName}
 			    </td>
 			    <td width="50%" align="right" style="padding-right: 5px;">
-			        2010-10-10 | 조회 1
+			        ${dto.created} | 조회 ${dto.hitCount}
 			    </td>
 			</tr>
 			
 			<tr style="border-bottom: 1px solid #cccccc;">
-			  <td colspan="2" align="left" style="padding: 10px 5px;" valign="top" height="200">
-			      내용 입니다 ...
+			  <td colspan="2" align="left" style="padding: 10px 5px;word-break: break-all;" valign="top" height="200">
+			      ${dto.content}
 			   </td>
 			</tr>
+
 			
+			<c:if test="${not empty dto.originalFilename}">
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
 			    <td colspan="2" align="left" style="padding-left: 5px;">
-			       이전글 :
+			       첨부파일 : <a href="<%=cp %>/notice/download.do?num=${dto.num}">${dto.originalFilename}</a>
+			    </td>
+			</tr> 
+			</c:if>
+			
+			<c:if test="${not empty preReadNoticeDTO}">
+			<tr height="35" style="border-bottom: 1px solid #cccccc;">
+			    <td colspan="2" align="left" style="padding-left: 5px;">
+			       이전글 : <a href="${articleUrl}&amp;num=${preReadNoticeDTO.num}">${preReadNoticeDTO.subject}</a>
+			    </td>
+			</tr>
+			</c:if>
+			
+			<c:if test="${not empty nextReadNoticeDTO}">
+			<tr height="35" style="border-bottom: 1px solid #cccccc;">
+			    <td colspan="2" align="left" style="padding-left: 5px;">
+			       다음글 : <a href="${articleUrl}&amp;num=${nextReadNoticeDTO.num}">${nextReadNoticeDTO.subject}</a>
 
 			    </td>
 			</tr>
-			
-			<tr height="35" style="border-bottom: 1px solid #cccccc;">
-			    <td colspan="2" align="left" style="padding-left: 5px;">
-			       다음글 :
-
-			    </td>
-			</tr>
+			</c:if>
 			<tr height="45">
 			    <td>
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/';">수정</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/update.do?${query}';">수정</button>
 			          <button type="button" class="btn" onclick="deleteBoard('1');">삭제</button>
 			    </td>
 			
 			    <td align="right">
-			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/';">리스트</button>
+			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/list.do${query}';">리스트</button>
 			    </td>
 			</tr>
 			</table>

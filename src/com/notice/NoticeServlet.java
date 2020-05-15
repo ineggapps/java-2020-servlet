@@ -41,7 +41,7 @@ public class NoticeServlet extends MyUploadServlet {
 		HttpSession session = req.getSession();
 		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
 
-		System.out.println("===" + uri + "접근...\n" + info);
+//		System.out.println("===" + uri + "접근...\n" + info);
 		if (uri.indexOf("list.do") == -1 && info == null) {
 			System.out.println("존재하지 않는 페이지 접근 || 로그인 정보 없음");
 			resp.sendRedirect(cp + "/member/login.do");
@@ -50,7 +50,7 @@ public class NoticeServlet extends MyUploadServlet {
 
 		// 관리자만 글을 올릴 수 있도록 접근 제어하기
 		if (!isAvailable(uri, info)) {
-			System.out.println("ERR: 관리자만 접근해야 함\n현재 세션 정보: " + info);
+//			System.out.println("ERR: 관리자만 접근해야 함\n현재 세션 정보: " + info);
 			resp.sendRedirect(cp + "/notice/list.do");
 			return;
 		}
@@ -87,19 +87,15 @@ public class NoticeServlet extends MyUploadServlet {
 
 	private boolean isAvailable(String uri, SessionInfo info) {
 		String[] acceptPages = { "list.do", "download.do" };
-//		String[] adminPages = {"created.do", "created_ok.do", "update.do", "update_ok.do", "delete.do", "deletefile.do"};
 		for (String page : acceptPages) {
 			if (uri.indexOf(page) > -1) {
-				System.out.println("접근할 수 있는 페이지 " + page);
 				return true;
 			}
 		}
 		if (info == null || !info.getUserId().equals("admin")) {
-			System.out.println("로그인이 필요함");
 			return false;
 		}
 		// 관리자의 경우에는 접근할 수 있음.
-		System.out.println("관리자 최종 승인");
 		return true;
 	}
 
@@ -193,7 +189,7 @@ public class NoticeServlet extends MyUploadServlet {
 
 		// 페이징 처리
 		String listUrl = cp + "/notice/list.do";
-		String articleUrl = cp + "/notice/article.do?page=" + current_page + "&rows="+rows;
+		String articleUrl = cp + "/notice/article.do?page=" + current_page;
 		if (query.length() > 0) {
 			listUrl += "?" + query;
 			articleUrl += "&" + query;
@@ -219,6 +215,61 @@ public class NoticeServlet extends MyUploadServlet {
 
 	protected void article(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 글 보기
+		SessionInfo info = getSessionInfo(req);
+		NoticeDAO dao = new NoticeDAO();
+		NoticeDTO dto;
+		// parateter 처리
+		String cp = req.getContextPath();
+		String page = req.getParameter("page");
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		} else {
+			page = "1";
+		}
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		try {
+			String rows = req.getParameter("rows");
+			int num = Integer.parseInt(req.getParameter("num"));
+			dto = dao.readNotice(num);
+
+			if (dto == null) {
+				throw new Exception("게시물이 존재하지 않음");
+			}
+
+			NoticeDTO preReadNoticeDTO = dao.preReadNotice(num, condition, keyword);
+			NoticeDTO nextReadNoticeDTO = dao.nextReadNotice(num, condition, keyword);
+
+			System.out.println(preReadNoticeDTO + "\n\n" + nextReadNoticeDTO + "음");
+			
+			String query = "?page=" + current_page + "&rows=" + rows;
+			if (keyword != null && keyword.length() > 0) {
+				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+			}
+			String articleUrl = cp + "/notice/article.do" + query;
+
+			req.setAttribute("dto", dto);
+			req.setAttribute("preReadNoticeDTO", preReadNoticeDTO);
+			req.setAttribute("nextReadNoticeDTO", nextReadNoticeDTO);
+			req.setAttribute("query", query);
+			req.setAttribute("articleUrl", articleUrl);
+			req.setAttribute(SESSION_INFO, info);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(cp + "/notice/list.do");
+			return;
+		}
+
 		forward(req, resp, VIEWS + "/notice/article.jsp");
 	}
 
@@ -293,6 +344,13 @@ public class NoticeServlet extends MyUploadServlet {
 	protected void deleteFile(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 파일 삭제
 
+	}
+
+	private SessionInfo getSessionInfo(HttpServletRequest req) {
+		if (req == null) {
+			return null;
+		}
+		return (SessionInfo) req.getSession().getAttribute(SESSION_INFO);
 	}
 
 }
