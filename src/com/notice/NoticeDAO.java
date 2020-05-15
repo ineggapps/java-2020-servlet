@@ -435,6 +435,7 @@ public class NoticeDAO {
 		String sql = "UPDATE notice SET notice=?, subject=?, content=?, saveFilename=?, originalFilename=?, filesize=? WHERE num = ?";
 		try {
 			pstmt = conn.prepareStatement(sql);
+			System.out.println(dto+"d.d.d.");
 			pstmt.setInt(1, dto.getNotice());
 			pstmt.setString(2, dto.getSubject());
 			pstmt.setString(3, dto.getContent());
