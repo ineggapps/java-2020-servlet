@@ -147,7 +147,7 @@
 			      </td>
 			      <td align="right" width="100">
 			      	<c:if test="${sessionScope.member.userId == 'admin' }">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/created.do';">글올리기</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/created.do?rows=${rows}';">글올리기</button>
 			      	</c:if>
 			      </td>
 			   </tr>

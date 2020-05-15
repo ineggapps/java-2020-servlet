@@ -40,6 +40,13 @@
 
         f.submit();
     }
+
+	<c:if test="${mode=='update'}">
+		function deleteFile(num){
+			var url = "<%=cp%>/notice/deleteFile.do?num="+num+"&page=${page}&rows=${rows}";
+			location.href = url;
+		}
+	</c:if>
 </script>
 </head>
 <body>
@@ -67,7 +74,7 @@
 			  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
 			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">공지여부</td>
 			      <td style="padding-left:10px;"> 
-			          <input type="checkbox" name="notice"  /> 공지
+			          <input type="checkbox" name="notice" ${dto.notice==1?"checked='checked'":""}  /> 공지
 			      </td>
 			  </tr>
 
@@ -91,17 +98,34 @@
 			          <input type="file" name="upload" class="boxTF" size="53"  style="height:25px;"/>
 			      </td>
 			  </tr>
+			  
+			  <c:if test="${mode=='update'}">
+			  <%-- 글 수정일 때만 보이는 영역 --%>
+				  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
+				      <td width="100" bgcolor="#eeeeee" style="text-align: center;">첨부된 파일</td>
+				      <td style="padding-left:10px;"> 
+				          <c:if test="${not empty dto.saveFilename }">
+				          ${dto.originalFilename } | <a href="javascript:deleteFile('${dto.num}')">삭제</a>
+				          </c:if>
+				      </td>
+				  </tr>
+			  </c:if>
 			  </table>
 			
 			  <table style="width: 100%; border-spacing: 0px;">
 			     <tr height="45"> 
 			      <td align="center" >
-			      	<c:if test="${not empty dto.num}">
-			      	<input type="hidden" name="num" value="${dto.num}" />
-			      	</c:if>
 			        <button type="button" class="btn" onclick="sendOk();">${mode=='update'?'수정완료':'등록하기'}</button>
 			        <button type="reset" class="btn">다시입력</button>
-			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/list.do';">${mode=='update'?'수정취소':'등록취소'}</button>
+			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/list.do${query}';">${mode=='update'?'수정취소':'등록취소'}</button>
+			      	<c:if test="${mode=='update'}">
+			      	<input type="hidden" name="num" value="${dto.num}" />
+			      	<input type="hidden" name="page" value="${page}" />
+			      	<input type="hidden" name="fileSize" value="${dto.fileSize}" />
+			      	<input type="hidden" name="saveFilename" value="${dto.saveFilename}" />
+			      	<input type="hidden" name="originalFilename" value="${dto.originalFilename}" />
+			      	</c:if>
+			      	<input type="hidden" name="rows" value="${rows}" />
 			      </td>
 			    </tr>
 			  </table>

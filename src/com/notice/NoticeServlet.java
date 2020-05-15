@@ -30,6 +30,8 @@ public class NoticeServlet extends MyUploadServlet {
 	private String pathname;
 
 	private static final long serialVersionUID = 1L;
+
+	private final static int ROWS_DEFAULT = 10;
 	private final static String VIEWS = "/WEB-INF/views";
 	private final static String SESSION_INFO = "member";
 
@@ -137,7 +139,7 @@ public class NoticeServlet extends MyUploadServlet {
 			dataCount = dao.dataCount();
 		}
 		String r = req.getParameter("rows");
-		int rows = r != null ? Integer.parseInt(r) : 10;
+		int rows = r != null ? Integer.parseInt(r) : ROWS_DEFAULT;
 		int total_page = myUtil.pageCount(rows, dataCount);
 		if (current_page > total_page) {
 			current_page = total_page;
@@ -290,7 +292,36 @@ public class NoticeServlet extends MyUploadServlet {
 //			resp.sendRedirect(req.getContextPath()+"/notice/list.do");
 //			return;
 //		}
+		String cp = req.getContextPath();
+		String page = req.getParameter("page");
+		String rows = req.getParameter("rows");
+
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		} else {
+			page = "1";
+		}
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		String query = "?page=" + current_page + "&rows=" + rows;
+		if (keyword != null && keyword.length() > 0) {
+			query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+		}
+
 		req.setAttribute("mode", "created");
+		req.setAttribute("rows", rows);
+		req.setAttribute("query", query);
 		forward(req, resp, VIEWS + "/notice/created.jsp");
 	}
 
@@ -302,7 +333,10 @@ public class NoticeServlet extends MyUploadServlet {
 		// DB에 글 등록하기
 		NoticeDAO dao = new NoticeDAO();
 		NoticeDTO dto = new NoticeDTO();
-
+		String rows = req.getParameter("rows");
+		if (rows == null) {
+			rows = "10";
+		}
 		try {
 			// 파일 업로드
 			Part p = req.getPart("upload");
@@ -315,7 +349,7 @@ public class NoticeServlet extends MyUploadServlet {
 			// DB 삽입
 			String notice = req.getParameter("notice");
 			if (notice != null) {
-				dto.setNotice(notice.equalsIgnoreCase("on")?1:0);
+				dto.setNotice(notice.equalsIgnoreCase("on") ? 1 : 0);
 			}
 			dto.setUserId(info.getUserId());
 			dto.setSubject(req.getParameter("subject"));
@@ -325,7 +359,7 @@ public class NoticeServlet extends MyUploadServlet {
 			e.printStackTrace();
 		}
 
-		resp.sendRedirect(cp + "/notice/list.do");
+		resp.sendRedirect(cp + "/notice/list.do?rows=" + rows);
 
 	}
 
@@ -358,27 +392,32 @@ public class NoticeServlet extends MyUploadServlet {
 		try {
 			int num = Integer.parseInt(req.getParameter("num"));
 			String rows = req.getParameter("rows");
-			dto = dao.readNotice(num);
-			if (dto == null) {
-				throw new Exception("게시물이 존재하지 않음");
-			}
-
 			String query = "?page=" + current_page + "&rows=" + rows;
 			if (keyword != null && keyword.length() > 0) {
 				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
 			}
 
-			req.setAttribute("dto", dto);
-			req.setAttribute("query", query);
-			req.setAttribute(SESSION_INFO, info);
+			dto = dao.readNotice(num);
+			if (dto == null) {
+				resp.sendRedirect(cp + "/notice/list.do" + query);
+				throw new Exception("게시물이 존재하지 않음");
+			}
 
+			if (!info.getUserId().equals(dto.getUserId())) {
+				resp.sendRedirect(cp + "/notice/list.do?page=" + page + "&rows=" + rows);
+			}
+
+			req.setAttribute("dto", dto);
+			req.setAttribute("page", page);
+			req.setAttribute("query", query);
+			req.setAttribute("rows", rows);
+			req.setAttribute(SESSION_INFO, info);
+			forward(req, resp, VIEWS + "/notice/created.jsp" + query);
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.sendRedirect(cp + "/notice/list.do");
 			return;
 		}
-
-		forward(req, resp, VIEWS + "/notice/created.jsp");
 	}
 
 	protected void updateSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -389,12 +428,34 @@ public class NoticeServlet extends MyUploadServlet {
 		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
 		// DB에 글 등록하기
 		NoticeDAO dao = new NoticeDAO();
-		NoticeDTO dto;
+		NoticeDTO dto = new NoticeDTO();
+		String page = req.getParameter("page");
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		} else {
+			page = "1";
+		}
+		String r = req.getParameter("rows");
+		int rows = r != null ? Integer.parseInt(r) : ROWS_DEFAULT;
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
 
+		int num = Integer.parseInt(req.getParameter("num"));
+		dto.setNum(num);
+		String query = "?page=" + current_page + "&rows=" + rows;
+		if (keyword != null && keyword.length() > 0) {
+			query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+		}
 		try {
-			int num = Integer.parseInt(req.getParameter("num"));
-			dto = dao.readNotice(num);
-			
+
 			// 파일 업로드
 //			Part p = req.getPart("upload");
 //			Map<String, String> map = doFileUpload(p, pathname);
@@ -405,18 +466,17 @@ public class NoticeServlet extends MyUploadServlet {
 //			}
 			// DB 삽입
 			String notice = req.getParameter("notice");
-			if (notice != null) {
-				dto.setNotice(notice.equalsIgnoreCase("on")?1:0);
-			}
+			dto.setNotice(notice != null ? 1 : 0);
 			dto.setUserId(info.getUserId());
 			dto.setSubject(req.getParameter("subject"));
 			dto.setContent(req.getParameter("content"));
 			dao.updateNotice(dto);
 		} catch (Exception e) {
 			e.printStackTrace();
+			
 		}
+		resp.sendRedirect(cp + "/notice/list.do"+query);
 
-		resp.sendRedirect(cp + "/notice/list.do");
 
 	}
 
@@ -436,9 +496,9 @@ public class NoticeServlet extends MyUploadServlet {
 			if (dto != null) {
 				b = FileManager.doFiledownload(dto.getSaveFilename(), dto.getOriginalFilename(), pathname, resp);
 			}
-			
-			if(!b) {
-				//다운로드 파일이 존재하지 않은 경우
+
+			if (!b) {
+				// 다운로드 파일이 존재하지 않은 경우
 				resp.setContentType("text/html; charset=utf-8");
 				PrintWriter out = resp.getWriter();
 				out.print("<script>alert('파일이 존재하지 않습니다.');history.back();</script>");
@@ -453,7 +513,42 @@ public class NoticeServlet extends MyUploadServlet {
 
 	protected void deleteFile(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 파일 삭제
+		NoticeDAO dao = new NoticeDAO();
+		String cp = req.getContextPath();
+		String page = req.getParameter("page");
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		} else {
+			page = "1";
+		}
 
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		try {
+			String rows = req.getParameter("rows");
+			int num = Integer.parseInt(req.getParameter("num"));
+
+			String query = "?page=" + current_page + "&rows=" + rows;
+			if (keyword != null && keyword.length() > 0) {
+				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+			}
+
+			resp.sendRedirect(cp + "/notice/list.do" + query);
+			dao.deleteNotice(num);
+		} catch (Exception e) {
+			resp.sendRedirect(cp + "/notice/list.do");
+			e.printStackTrace();
+			return;
+		}
 	}
 
 	private SessionInfo getSessionInfo(HttpServletRequest req) {
