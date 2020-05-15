@@ -247,13 +247,36 @@ public class NoticeDAO {
 		return list;
 	}
 
+	// 조회수 올리기
+	public int updateHitCount(int num) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "UPDATE notice SET hitCount=hitCount+1 WHERE num = ?";
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, num);
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+
+		return result;
+	}
+
 	// 공지게시글 읽기
 	public NoticeDTO readNotice(int num) {
 		NoticeDTO dto = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		String sql = "SELECT num, notice, n.userId, userName, subject, content, originalFilename, fileSize, hitCount, "
-				+ " TO_CHAR(created, 'YYYY-MM-DD') created "
+		String sql = "SELECT num, notice, n.userId, userName, subject, content, saveFilename, originalFilename, fileSize, hitCount, created "
 				+ " FROM notice n JOIN member1 m1 ON n.userId = m1.userId WHERE num = ?";
 		try {
 			pstmt = conn.prepareStatement(sql);

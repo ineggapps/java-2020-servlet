@@ -56,6 +56,12 @@ function deleteBoard(num) {
 			    </td>
 			</tr>
 			
+			<tr height="35" style="border-bottom: 1px solid #cccccc;">
+			    <td colspan="2" align="left" style="padding-left: 5px;">
+			       공지사항 <input type="checkbox" name="notice" ${dto.notice==1?"checked='checked'":""} disabled="disabled" />
+			    </td>
+			</tr>
+			
 			<tr style="border-bottom: 1px solid #cccccc;">
 			  <td colspan="2" align="left" style="padding: 10px 5px;word-break: break-all;" valign="top" height="200">
 			      ${dto.content}
@@ -67,9 +73,10 @@ function deleteBoard(num) {
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
 			    <td colspan="2" align="left" style="padding-left: 5px;">
 			       첨부파일 : <a href="<%=cp %>/notice/download.do?num=${dto.num}">${dto.originalFilename}</a>
+			       (<fmt:formatNumber value="${dto.fileSize/1024}" pattern="0.00"/> Kbyte)
 			    </td>
 			</tr> 
-			</c:if>
+			</c:if> 
 			
 			<c:if test="${not empty preReadNoticeDTO}">
 			<tr height="35" style="border-bottom: 1px solid #cccccc;">
@@ -89,7 +96,7 @@ function deleteBoard(num) {
 			</c:if>
 			<tr height="45">
 			    <td>
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/update.do?${query}';">수정</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/update.do${query}&num=${dto.num}';">수정</button>
 			          <button type="button" class="btn" onclick="deleteBoard('1');">삭제</button>
 			    </td>
 			

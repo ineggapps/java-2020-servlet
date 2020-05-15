@@ -216,9 +216,10 @@ public class NoticeServlet extends MyUploadServlet {
 	protected void article(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 글 보기
 		SessionInfo info = getSessionInfo(req);
+		MyUtil util = new MyUtil();
 		NoticeDAO dao = new NoticeDAO();
 		NoticeDTO dto;
-		// parateter 처리
+		// parameter 처리
 		String cp = req.getContextPath();
 		String page = req.getParameter("page");
 		int current_page = 1;
@@ -241,17 +242,19 @@ public class NoticeServlet extends MyUploadServlet {
 		try {
 			String rows = req.getParameter("rows");
 			int num = Integer.parseInt(req.getParameter("num"));
+			dao.updateHitCount(num); //조회수 올리고 조회
 			dto = dao.readNotice(num);
 
 			if (dto == null) {
 				throw new Exception("게시물이 존재하지 않음");
 			}
+			
+			dto.setContent(util.htmlSymbols(dto.getContent()));
 
 			NoticeDTO preReadNoticeDTO = dao.preReadNotice(num, condition, keyword);
 			NoticeDTO nextReadNoticeDTO = dao.nextReadNotice(num, condition, keyword);
 
-			System.out.println(preReadNoticeDTO + "\n\n" + nextReadNoticeDTO + "음");
-			
+
 			String query = "?page=" + current_page + "&rows=" + rows;
 			if (keyword != null && keyword.length() > 0) {
 				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
@@ -326,6 +329,52 @@ public class NoticeServlet extends MyUploadServlet {
 	protected void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 글 수정
 		req.setAttribute("mode", "update");
+		SessionInfo info = getSessionInfo(req);
+		NoticeDAO dao = new NoticeDAO();
+		NoticeDTO dto;
+
+		String cp = req.getContextPath();
+		String page = req.getParameter("page");
+		int current_page = 1;
+		if (page != null) {
+			current_page = Integer.parseInt(page) > 0 ? Integer.parseInt(page) : 1;
+		} else {
+			page = "1";
+		}
+
+		String condition = req.getParameter("condition");
+		String keyword = req.getParameter("keyword");
+		if (condition == null) {
+			condition = "subject";
+			keyword = "";
+		}
+		if (req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword, "UTF-8");
+		}
+
+		try {
+			int num = Integer.parseInt(req.getParameter("num"));
+			String rows = req.getParameter("rows");
+			dto = dao.readNotice(num);
+			if (dto == null) {
+				throw new Exception("게시물이 존재하지 않음");
+			}
+
+			String query = "?page=" + current_page + "&rows=" + rows;
+			if (keyword != null && keyword.length() > 0) {
+				query += "&condition=" + condition + "&keyword=" + URLEncoder.encode(keyword, "UTF-8");
+			}
+
+			req.setAttribute("dto", dto);
+			req.setAttribute("query", query);
+			req.setAttribute(SESSION_INFO, info);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(cp + "/notice/list.do");
+			return;
+		}
+
 		forward(req, resp, VIEWS + "/notice/created.jsp");
 	}
 

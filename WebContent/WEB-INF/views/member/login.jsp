@@ -89,7 +89,7 @@ function sendLogin() {
 			      <td> 
 	                <label for="userId" id="lblUserId" class="lbl" >아이디</label>
 			        <input type="text" name="userId" id="userId" class="loginTF" maxlength="15"
-			                   tabindex="1"
+			                   tabindex="1" value="admin"
 	                           onfocus="document.getElementById('lblUserId').style.display='none';"
 	                           onblur="bgLabel(this, 'lblUserId');">
 			      </td>
@@ -98,7 +98,7 @@ function sendLogin() {
 			      <td>
 			        <label for="userPwd" id="lblUserPwd" class="lbl" >패스워드</label>
 			        <input type="password" name="userPwd" id="userPwd" class="loginTF" maxlength="20" 
-			                   tabindex="2"
+			                   tabindex="2" value="admin"
 	                           onfocus="document.getElementById('lblUserPwd').style.display='none';"
 	                           onblur="bgLabel(this, 'lblUserPwd');">
 			      </td>
