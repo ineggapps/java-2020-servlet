@@ -57,6 +57,8 @@ public class PhotoServlet extends MyUploadServlet {
 	private static final String PARAM_DATA_COUNT = "dataCount";
 	private static final String PARAM_LIST = "list";
 	private static final String PARAM_IMAGE_PATH = "image_path";
+	private static final String PAGING = "paging";
+	private static final String PARAM_LIST_URL = "listUrl";
 
 	// SEARCH
 	private static final String CONDITION = "condition";
@@ -117,7 +119,7 @@ public class PhotoServlet extends MyUploadServlet {
 		String page = req.getParameter(PARAM_PAGE);
 		attributes.put(CONDITION, condition);
 		attributes.put(KEYWORD, keyword);
-		attributes.put(PARAM_PAGE, page);
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
 		checkSearchParameter(condition, keyword);
 
 		List<PhotoDTO> list;
@@ -146,6 +148,9 @@ public class PhotoServlet extends MyUploadServlet {
 		attributes.put(PARAM_TOTAL_PAGE, totalPage + "");
 		attributes.put(PARAM_LIST, list);
 		attributes.put(PARAM_IMAGE_PATH, imagePath);
+		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST + makeQuery(attributes);
+		attributes.put(PARAM_LIST_URL, listURL);
+		attributes.put(PAGING, util.paging(currentPage, totalPage, listURL));
 
 		// 기본 파라미터 setAttribute하기
 		setAttributes(req, attributes);
@@ -257,18 +262,23 @@ public class PhotoServlet extends MyUploadServlet {
 
 	private String makeQuery(Map<String, Object> attributes) {
 		StringBuilder query = new StringBuilder();
-		int idx = 0;
-		for (String key : attributes.keySet()) {
-			Object value = attributes.getOrDefault(key, "");
-			if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Double
-					|| value instanceof Float) {
-				if (idx++ > 0) {
-					query.append("&");
+		String[] keys = { CONDITION, KEYWORD };
+		for (String key : keys) {
+			Object value = attributes.get(key);
+			if (value != null) {
+				if (value instanceof String || value instanceof Integer || value instanceof Long
+						|| value instanceof Double || value instanceof Float) {
+					query.append("&" + key + "=" + value);
 				}
-				query.append(key + "=" + value);
 			}
 		}
-		return "?" + query.toString();
+		String result = query.toString();
+		if(result.length()>0) {
+			return "?" + result.substring(1);
+		}else {
+			return result;
+		}
+
 	}
 
 }

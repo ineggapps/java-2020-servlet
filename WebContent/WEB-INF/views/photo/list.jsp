@@ -16,6 +16,25 @@
 <link rel="stylesheet" href="<%=cp%>/resource/css/style.css" type="text/css">
 <link rel="stylesheet" href="<%=cp%>/resource/css/layout.css" type="text/css">
 <link rel="stylesheet" href="<%=cp%>/resource/jquery/css/smoothness/jquery-ui.min.css" type="text/css">
+<style type="text/css">
+	.gallery{
+		text-align:center;
+	}
+	.gallery li{ 
+		display:inline-block;
+	}
+	.gallery .row_image{
+		width:220px;
+		height:220px; 
+		background-repeat:no-repeat;
+		background-position:center center;
+		background-size:200%;
+		transition:background-size linear 0.2s; 
+	}
+	.gallery .row_image:hover{
+		background-size:300%;
+	}
+</style>
 
 <script type="text/javascript" src="<%=cp%>/resource/js/util.js"></script>
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery.min.js"></script>
@@ -39,68 +58,31 @@
         </div>
         
         <div>
-			<table style="width: 100%; margin-top: 20px; border-spacing: 0;">
-			   <tr height="35">
-			      <td align="left" width="50%">
-			          ${dataCount}개(${current_page}/${total_page} 페이지)
-			      </td>
-			      <td align="right">
-			          &nbsp;
-			      </td>
-			   </tr>
-			</table>
-			
-			<table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
-			  <tr align="center" bgcolor="#eeeeee" height="35" style="border-top: 1px solid #cccccc; border-bottom: 1px solid #cccccc;"> 
-			      <th width="60" style="color: #787878;">번호</th>
-			      <th style="color: #787878;">제목</th>
-			      <th width="100" style="color: #787878;">작성자</th>
-			      <th width="80" style="color: #787878;">작성일</th>
-			      <th width="60" style="color: #787878;">조회수</th>
-			  </tr>
-			 
+			  <ul class="gallery"> 
 			 <c:forEach var="dto" items="${list}">
-			  <tr align="center" height="35" style="border-bottom: 1px solid #cccccc;"> 
-			      <td>${dto.listNum}</td>
-			      <td align="left" style="padding-left: 10px;">
-			           <a href="${articleUrl}&amp;num=${dto.num}">${dto.subject}</a>
-			      </td>
-			      <td>${dto.userName}</td>
-			      <td>${dto.created}</td>
-			      <td><img src="${image_path}/${dto.imageFilename}" alt="${dto.subject}" /></td>
-			  </tr>
+			      <li>
+			      	<div class="photo">
+			      		<div class="row_image" style="background-image:url('${image_path}/${dto.imageFilename}')"></div>
+						<div class="row_subject">${dto.subject}</div>
+			      	</div>
+			      </li>
 			 </c:forEach>
-
-			</table>
-			 
-			<table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
-			   <tr height="35">
-				<td align="center">
-			        ${dataCount==0?"등록된 게시물이 없습니다.":paging}
-				</td>
-			   </tr>
-			</table>
-			
+			  </ul>
 			<table style="width: 100%; margin: 10px auto; border-spacing: 0px;">
-			   <tr height="40">
-			      <td align="left" width="100">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/list.do';">새로고침</button>
-			      </td>
-			      <td align="center">
-			          <form name="searchForm" action="<%=cp%>/bbs/list.do" method="post">
-			              <select name="condition" class="selectField">
-			                  <option value="subject" ${condition=="subject"?"selected='selected'":""}>제목</option>
-			                  <option value="userName" ${condition=="userName"?"selected='selected'":""}>작성자</option>
-			                  <option value="content" ${condition=="content"?"selected='selected'":""}>내용</option>
-			                  <option value="created" ${condition=="created"?"selected='selected'":""}>등록일</option>
-			            </select>
-			            <input type="text" name="keyword" class="boxTF" value="${keyword}">
-			            <button type="button" class="btn" onclick="searchList()">검색</button>
-			        </form>
-			      </td>
-			      <td align="right" width="100">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/created.do';">글올리기</button>
-			      </td>
+				<tr>
+					<td>
+						<c:if test="${dataCount==0}">
+							사진첩에 사진이 아직 없습니다.
+						</c:if>
+						<c:if test="${dataCount>0}">
+							${paging}
+						</c:if>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100">
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/created.do';">사진 올리기</button>
+			     	</td>
 			   </tr>
 			</table>
         </div>
