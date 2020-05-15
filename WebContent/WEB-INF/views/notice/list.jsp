@@ -86,7 +86,7 @@
 			      <td>${dto.hitCount}</td>
 			      <td>
 				      <c:if test="${not empty dto.saveFilename }">
-					      <a href="<%=cp %>/notice/download.do?num=${dto.saveFilename}"><img src="<%=cp %>/resource/images/disk.gif" border="0" style="margin-top:1px;" /></a>
+					      <a href="<%=cp %>/notice/download.do?num=${dto.num}"><img src="<%=cp %>/resource/images/disk.gif" border="0" style="margin-top:1px;" /></a>
 				      </c:if>
 			      </td>
 			  </tr>
