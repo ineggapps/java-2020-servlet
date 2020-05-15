@@ -67,7 +67,7 @@
 			  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
 			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">공지여부</td>
 			      <td style="padding-left:10px;"> 
-			          <input type="checkbox" name="notice" value="${dto.notice}" /> 공지
+			          <input type="checkbox" name="notice"  /> 공지
 			      </td>
 			  </tr>
 
@@ -96,6 +96,9 @@
 			  <table style="width: 100%; border-spacing: 0px;">
 			     <tr height="45"> 
 			      <td align="center" >
+			      	<c:if test="${not empty dto.num}">
+			      	<input type="hidden" name="num" value="${dto.num}" />
+			      	</c:if>
 			        <button type="button" class="btn" onclick="sendOk();">${mode=='update'?'수정완료':'등록하기'}</button>
 			        <button type="reset" class="btn">다시입력</button>
 			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/list.do';">${mode=='update'?'수정취소':'등록취소'}</button>

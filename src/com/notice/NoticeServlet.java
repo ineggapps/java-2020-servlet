@@ -2,6 +2,7 @@ package com.notice;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -27,7 +28,7 @@ import com.util.MyUtil;
 public class NoticeServlet extends MyUploadServlet {
 
 	private String pathname;
-	
+
 	private static final long serialVersionUID = 1L;
 	private final static String VIEWS = "/WEB-INF/views";
 	private final static String SESSION_INFO = "member";
@@ -50,10 +51,9 @@ public class NoticeServlet extends MyUploadServlet {
 			resp.sendRedirect(cp + "/member/login.do");
 			return;
 		}
-		
+
 		String root = session.getServletContext().getRealPath("/");
 		pathname = root + "uploads" + File.separator + "notice";
-
 
 		// 관리자만 글을 올릴 수 있도록 접근 제어하기
 		if (!isAvailable(uri, info)) {
@@ -93,7 +93,7 @@ public class NoticeServlet extends MyUploadServlet {
 	}
 
 	private boolean isAvailable(String uri, SessionInfo info) {
-		String[] acceptPages = { "list.do"};
+		String[] acceptPages = { "list.do" };
 		for (String page : acceptPages) {
 			if (uri.indexOf(page) > -1) {
 				return true;
@@ -249,18 +249,17 @@ public class NoticeServlet extends MyUploadServlet {
 		try {
 			String rows = req.getParameter("rows");
 			int num = Integer.parseInt(req.getParameter("num"));
-			dao.updateHitCount(num); //조회수 올리고 조회
+			dao.updateHitCount(num); // 조회수 올리고 조회
 			dto = dao.readNotice(num);
 
 			if (dto == null) {
 				throw new Exception("게시물이 존재하지 않음");
 			}
-			
+
 			dto.setContent(util.htmlSymbols(dto.getContent()));
 
 			NoticeDTO preReadNoticeDTO = dao.preReadNotice(num, condition, keyword);
 			NoticeDTO nextReadNoticeDTO = dao.nextReadNotice(num, condition, keyword);
-
 
 			String query = "?page=" + current_page + "&rows=" + rows;
 			if (keyword != null && keyword.length() > 0) {
@@ -316,7 +315,7 @@ public class NoticeServlet extends MyUploadServlet {
 			// DB 삽입
 			String notice = req.getParameter("notice");
 			if (notice != null) {
-				dto.setNotice(Integer.parseInt(notice));
+				dto.setNotice(notice.equalsIgnoreCase("on")?1:0);
 			}
 			dto.setUserId(info.getUserId());
 			dto.setSubject(req.getParameter("subject"));
@@ -384,6 +383,41 @@ public class NoticeServlet extends MyUploadServlet {
 
 	protected void updateSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// DB에 글 수정사항 반영하기
+
+		String cp = req.getContextPath();
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo) session.getAttribute(SESSION_INFO);
+		// DB에 글 등록하기
+		NoticeDAO dao = new NoticeDAO();
+		NoticeDTO dto;
+
+		try {
+			int num = Integer.parseInt(req.getParameter("num"));
+			dto = dao.readNotice(num);
+			
+			// 파일 업로드
+//			Part p = req.getPart("upload");
+//			Map<String, String> map = doFileUpload(p, pathname);
+//			if (map != null) {// 파일이 업로드되고 존재하는 경우에만
+//				dto.setSaveFilename(map.get(SAVE_FILENAME));
+//				dto.setOriginalFilename(map.get(ORIGINAL_FILENAME));
+//				dto.setFileSize(p.getSize());
+//			}
+			// DB 삽입
+			String notice = req.getParameter("notice");
+			if (notice != null) {
+				dto.setNotice(notice.equalsIgnoreCase("on")?1:0);
+			}
+			dto.setUserId(info.getUserId());
+			dto.setSubject(req.getParameter("subject"));
+			dto.setContent(req.getParameter("content"));
+			dao.updateNotice(dto);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		resp.sendRedirect(cp + "/notice/list.do");
+
 	}
 
 	protected void delete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -395,21 +429,26 @@ public class NoticeServlet extends MyUploadServlet {
 		try {
 			NoticeDAO dao = new NoticeDAO();
 			int num = Integer.parseInt(req.getParameter("num"));
-			
+
 			NoticeDTO dto = dao.readNotice(num);
 			boolean b = false;
-			
-			System.out.println(dto.getSaveFilename() + "\n" + dto.getOriginalFilename());
-			if(dto != null) {
+
+			if (dto != null) {
 				b = FileManager.doFiledownload(dto.getSaveFilename(), dto.getOriginalFilename(), pathname, resp);
 			}
 			
-			
+			if(!b) {
+				//다운로드 파일이 존재하지 않은 경우
+				resp.setContentType("text/html; charset=utf-8");
+				PrintWriter out = resp.getWriter();
+				out.print("<script>alert('파일이 존재하지 않습니다.');history.back();</script>");
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
 		}
-		
+
 	}
 
 	protected void deleteFile(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

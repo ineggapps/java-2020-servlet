@@ -428,5 +428,31 @@ public class NoticeDAO {
 		}
 		return dto;
 	}
+	
+	public int updateNotice(NoticeDTO dto) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "UPDATE notice SET subject=?, content=?, saveFilename=?, originalFilename=?, filesize=? WHERE num = ?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, dto.getSubject());
+			pstmt.setString(2, dto.getContent());
+			pstmt.setString(3, dto.getSaveFilename());
+			pstmt.setString(4, dto.getOriginalFilename());
+			pstmt.setLong(5,dto.getFileSize());
+			pstmt.setInt(6,dto.getNum());
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return result;
+	}
 
 }
