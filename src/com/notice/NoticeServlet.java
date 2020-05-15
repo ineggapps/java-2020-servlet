@@ -88,7 +88,7 @@ public class NoticeServlet extends MyUploadServlet {
 		} else if (uri.indexOf("download.do") != -1) {
 			// 파일 다운로드
 			download(req, resp);
-		} else if (uri.indexOf("deletefile.do") != -1) {
+		} else if (uri.indexOf("deleteFile.do") != -1) {
 			// 파일 삭제
 			deleteFile(req, resp);
 		}
@@ -558,7 +558,35 @@ public class NoticeServlet extends MyUploadServlet {
 
 	protected void deleteFile(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 파일 삭제
+		SessionInfo info = getSessionInfo(req);
+		NoticeDAO dao = new NoticeDAO();
+		String cp = req.getContextPath();
 		
+		int num = Integer.parseInt(req.getParameter("num"));
+		String page = req.getParameter("page");
+		String rows = req.getParameter("rows");
+		
+		NoticeDTO dto = dao.readNotice(num);
+		if(dto==null) {
+			resp.sendRedirect(cp+"/notice/list.do?page="+page+"&rows="+rows);
+			return;
+		}
+		
+		//파일 삭제
+		FileManager.doFiledelete(pathname, dto.getSaveFilename());
+		
+		//파일명과 파일크기 변경
+		dto.setOriginalFilename("");
+		dto.setSaveFilename("");
+		dto.setFileSize(0);
+		dao.updateNotice(dto);
+		
+		req.setAttribute("dto", dto);
+		req.setAttribute("page", page);
+		req.setAttribute("rows", rows);
+		req.setAttribute("mode", "update");
+		
+		forward(req,resp,VIEWS+"/notice/created.jsp");
 	}
 
 	private SessionInfo getSessionInfo(HttpServletRequest req) {

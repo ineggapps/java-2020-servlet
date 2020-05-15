@@ -21,7 +21,8 @@
 <script type="text/javascript">
 function deleteBoard(num) {
 	if(confirm("게시물을 삭제 하시겠습니까 ?")) {
-		var url="<%=cp%>/notice/delete.do${query}&num="+num;
+		var url="<%=cp%>/notice/delete.do
+			${query}&num="+num;
 		location.href=url;
 	}
 }
