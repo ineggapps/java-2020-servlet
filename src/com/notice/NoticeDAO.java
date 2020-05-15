@@ -290,6 +290,7 @@ public class NoticeDAO {
 				dto.setUserName(rs.getString("userName"));
 				dto.setSubject(rs.getString("subject"));
 				dto.setContent(rs.getString("content"));
+				dto.setSaveFilename(rs.getString("saveFilename"));
 				dto.setOriginalFilename(rs.getString("originalFilename"));
 				dto.setFileSize(rs.getLong("fileSize"));
 				dto.setHitCount(rs.getInt("hitCount"));

@@ -18,6 +18,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import com.member.SessionInfo;
+import com.util.FileManager;
 import com.util.MyUploadServlet;
 import com.util.MyUtil;
 
@@ -25,6 +26,8 @@ import com.util.MyUtil;
 @MultipartConfig // Super class에서 명시했다고 해서 상속받는 클래스에서 생략할 수 있는 것은 아님
 public class NoticeServlet extends MyUploadServlet {
 
+	private String pathname;
+	
 	private static final long serialVersionUID = 1L;
 	private final static String VIEWS = "/WEB-INF/views";
 	private final static String SESSION_INFO = "member";
@@ -47,6 +50,10 @@ public class NoticeServlet extends MyUploadServlet {
 			resp.sendRedirect(cp + "/member/login.do");
 			return;
 		}
+		
+		String root = session.getServletContext().getRealPath("/");
+		pathname = root + "uploads" + File.separator + "notice";
+
 
 		// 관리자만 글을 올릴 수 있도록 접근 제어하기
 		if (!isAvailable(uri, info)) {
@@ -86,7 +93,7 @@ public class NoticeServlet extends MyUploadServlet {
 	}
 
 	private boolean isAvailable(String uri, SessionInfo info) {
-		String[] acceptPages = { "list.do", "download.do" };
+		String[] acceptPages = { "list.do"};
 		for (String page : acceptPages) {
 			if (uri.indexOf(page) > -1) {
 				return true;
@@ -297,9 +304,6 @@ public class NoticeServlet extends MyUploadServlet {
 		NoticeDAO dao = new NoticeDAO();
 		NoticeDTO dto = new NoticeDTO();
 
-		String root = session.getServletContext().getRealPath("/");
-		String pathname = root + "uploads" + File.separator + "notice";
-
 		try {
 			// 파일 업로드
 			Part p = req.getPart("upload");
@@ -388,6 +392,24 @@ public class NoticeServlet extends MyUploadServlet {
 
 	protected void download(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 다운로드
+		try {
+			NoticeDAO dao = new NoticeDAO();
+			int num = Integer.parseInt(req.getParameter("num"));
+			
+			NoticeDTO dto = dao.readNotice(num);
+			boolean b = false;
+			
+			System.out.println(dto.getSaveFilename() + "\n" + dto.getOriginalFilename());
+			if(dto != null) {
+				b = FileManager.doFiledownload(dto.getSaveFilename(), dto.getOriginalFilename(), pathname, resp);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		
 	}
 
 	protected void deleteFile(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
