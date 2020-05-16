@@ -20,12 +20,14 @@
 	.gallery{
 		text-align:center;
 	}
-	.gallery li{ 
+	.gallery li{
 		display:inline-block;
+		
 	}
 	.gallery .row_image{
 		width:220px;
 		height:220px; 
+		border-radius:8px;
 		background-repeat:no-repeat;
 		background-position:center center;
 		background-size:200%;
@@ -33,6 +35,10 @@
 	}
 	.gallery .row_image:hover{
 		background-size:300%;
+	}
+	.gallery .row_image,
+	.gallery .row_subject {
+		cursor:pointer;
 	}
 </style>
 
@@ -87,7 +93,7 @@
 				</tr>
 				<tr>
 					<td align="right" width="100">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/created.do';">사진 올리기</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/created.do${query}';">사진 올리기</button>
 			     	</td>
 			   </tr>
 			</table>

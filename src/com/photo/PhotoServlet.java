@@ -63,6 +63,7 @@ public class PhotoServlet extends MyUploadServlet {
 	private static final String ATTRIBUTE_LIST_URL = "listUrl";
 	private static final String ATTRIBUTE_ARTICLE_URL = "articleUrl";
 	private static final String ATTRIBUTE_DTO = "dto";
+	private static final String ATTRIBUTE_QUERY = "query";
 
 	// SEARCH
 	private static final String CONDITION = "condition";
@@ -160,6 +161,7 @@ public class PhotoServlet extends MyUploadServlet {
 		attributes.put(ATTRIBUTE_LIST_URL, listURL);
 		attributes.put(ATTRIBUTE_PAGING, util.paging(currentPage, totalPage, listURL));
 		attributes.put(ATTRIBUTE_ARTICLE_URL, articleURL);
+		attributes.put(ATTRIBUTE_QUERY, query);
 
 		// 기본 파라미터 setAttribute하기
 		setAttributes(req, attributes);
