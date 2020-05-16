@@ -35,6 +35,7 @@ public class PhotoServlet extends MyUploadServlet {
 
 	// API
 	private static final String API_LIST = "list.do";
+	private static final String API_ARTICLE = "article.do";
 	private static final String API_CREATED = "created.do";
 	private static final String API_CREATED_OK = "created_ok.do";
 	private static final String API_UPDATE = "update.do";
@@ -49,16 +50,19 @@ public class PhotoServlet extends MyUploadServlet {
 	private static final String JSP_ARTICLE = "article.jsp";
 
 	// PARAM
+	private static final String PARAM_NUM = "num";
 	private static final String PARAM_SUBJECT = "subject";
 	private static final String PARAM_CONTENT = "content";
 	private static final String PARAM_PAGE = "page";
 	private static final String PARAM_CURRENT_PAGE = "current_page";
 	private static final String PARAM_TOTAL_PAGE = "total_page";
 	private static final String PARAM_DATA_COUNT = "dataCount";
-	private static final String PARAM_LIST = "list";
 	private static final String PARAM_IMAGE_PATH = "image_path";
-	private static final String PAGING = "paging";
-	private static final String PARAM_LIST_URL = "listUrl";
+	private static final String ATTRIBUTE_PAGING = "paging";
+	private static final String ATTRIBUTE_LIST = "list";
+	private static final String ATTRIBUTE_LIST_URL = "listUrl";
+	private static final String ATTRIBUTE_ARTICLE_URL = "articleUrl";
+	private static final String ATTRIBUTE_DTO = "dto";
 
 	// SEARCH
 	private static final String CONDITION = "condition";
@@ -93,6 +97,8 @@ public class PhotoServlet extends MyUploadServlet {
 
 		if (uri.indexOf(API_LIST) != -1) {
 			list(req, resp);
+		} else if (uri.indexOf(API_ARTICLE) != -1) {
+			article(req, resp);
 		} else if (uri.indexOf(API_CREATED) != -1) {
 			createdForm(req, resp);
 		} else if (uri.indexOf(API_CREATED_OK) != -1) {
@@ -146,12 +152,51 @@ public class PhotoServlet extends MyUploadServlet {
 		attributes.put(CONDITION, condition);
 		attributes.put(PARAM_CURRENT_PAGE, currentPage + "");
 		attributes.put(PARAM_TOTAL_PAGE, totalPage + "");
-		attributes.put(PARAM_LIST, list);
+		attributes.put(ATTRIBUTE_LIST, list);
 		attributes.put(PARAM_IMAGE_PATH, imagePath);
-		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST + makeQuery(attributes);
-		attributes.put(PARAM_LIST_URL, listURL);
-		attributes.put(PAGING, util.paging(currentPage, totalPage, listURL));
+		String query = makeQuery(attributes);
+		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST;
+		String articleURL = contextPath + "/" + PHOTO + "/" + API_ARTICLE + query;
+		attributes.put(ATTRIBUTE_LIST_URL, listURL);
+		attributes.put(ATTRIBUTE_PAGING, util.paging(currentPage, totalPage, listURL));
+		attributes.put(ATTRIBUTE_ARTICLE_URL, articleURL);
 
+		// 기본 파라미터 setAttribute하기
+		setAttributes(req, attributes);
+		forward(req, resp, path);
+	}
+
+	protected void article(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String path = VIEWS + "/" + JSP_ARTICLE;
+		PhotoDAO dao = new PhotoDAO();
+		PhotoDTO dto;
+		// 검색 파라미터 불러오고 정리하기
+		Map<String, Object> attributes = new HashMap<>();
+		String num = req.getParameter(PARAM_NUM);
+		String condition = req.getParameter(CONDITION);
+		String keyword = req.getParameter(KEYWORD);
+		String page = req.getParameter(PARAM_PAGE);
+		attributes.put(CONDITION, condition);
+		attributes.put(KEYWORD, keyword);
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
+		checkSearchParameter(condition, keyword);
+		try {
+			dto = dao.readPhoto(Integer.parseInt(num));
+			attributes.put(ATTRIBUTE_DTO, dto);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(contextPath + "/" + PHOTO + "/" + API_LIST);
+			return;
+		}
+
+		// PARAM
+		attributes.put(CONDITION, condition);
+		attributes.put(PARAM_PAGE, page);
+		attributes.put(PARAM_IMAGE_PATH, imagePath);
+		String query = makeQuery(attributes);
+		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST + query;
+		attributes.put(ATTRIBUTE_LIST_URL, listURL);
 		// 기본 파라미터 setAttribute하기
 		setAttributes(req, attributes);
 		forward(req, resp, path);
@@ -262,7 +307,11 @@ public class PhotoServlet extends MyUploadServlet {
 
 	private String makeQuery(Map<String, Object> attributes) {
 		StringBuilder query = new StringBuilder();
-		String[] keys = { CONDITION, KEYWORD };
+		String[] keys = { CONDITION, KEYWORD, PARAM_PAGE };
+		if(attributes.keySet().size()==0) {
+			//아무것도 없다면
+			attributes.put(PARAM_PAGE, "1");
+		}
 		for (String key : keys) {
 			Object value = attributes.get(key);
 			if (value != null) {
@@ -273,10 +322,10 @@ public class PhotoServlet extends MyUploadServlet {
 			}
 		}
 		String result = query.toString();
-		if(result.length()>0) {
+		if (result.length() > 0) {
 			return "?" + result.substring(1);
-		}else {
-			return result;
+		} else {
+			return null;
 		}
 
 	}

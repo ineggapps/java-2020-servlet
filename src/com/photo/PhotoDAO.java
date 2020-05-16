@@ -114,7 +114,8 @@ public class PhotoDAO {
 		
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		String sql = "SELECT num, userId, subject, content, imageFilename, TO_CHAR(created, 'YYYY-MM-DD') created FROM photo "
+		String sql = "SELECT num, p.userId, userName, subject, content, imageFilename, TO_CHAR(created, 'YYYY-MM-DD') created FROM photo p "
+				+ " JOIN member1 m1 ON p.userId = m1.userId "
 				+ " ORDER BY num DESC OFFSET ? ROWS FETCH FIRST ? ROWS ONLY";
 		
 		try {
@@ -125,11 +126,12 @@ public class PhotoDAO {
 			while(rs.next()) {
 				int num = rs.getInt("num");
 				String userId = rs.getString("userId");
+				String userName = rs.getString("userName");
 				String subject = rs.getString("subject");
 				String content = rs.getString("content");
 				String imageFilename = rs.getString("imageFilename");
 				String created = rs.getString("created");
-				list.add(new PhotoDTO(num, userId, subject, content, imageFilename, created));
+				list.add(new PhotoDTO(num, userId, userName, subject, content, imageFilename, created));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -156,8 +158,8 @@ public class PhotoDAO {
 		
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		StringBuilder sql = new StringBuilder("SELECT num, userId, subject, content, imageFilename, TO_CHAR(created, 'YYYY-MM-DD') created FROM photo ");
-		
+		StringBuilder sql = new StringBuilder("SELECT num, p.userId, userName, subject, content, imageFilename, TO_CHAR(created, 'YYYY-MM-DD') created FROM photo p ");
+		sql.append(" JOIN member1 m1 ON p.userId = m1.userId ");
 		try {
 			if(condition.equalsIgnoreCase("created")) {
 				keyword = keyword.replaceAll("-", "");
@@ -178,11 +180,12 @@ public class PhotoDAO {
 			while(rs.next()) {
 				int num = rs.getInt("num");
 				String userId = rs.getString("userId");
+				String userName = rs.getString("userName");
 				String subject = rs.getString("subject");
 				String content = rs.getString("content");
 				String imageFilename = rs.getString("imageFilename");
 				String created = rs.getString("created");
-				list.add(new PhotoDTO(num, userId, subject, content, imageFilename, created));
+				list.add(new PhotoDTO(num, userId, userName, subject, content, imageFilename, created));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,5 +205,45 @@ public class PhotoDAO {
 		}
 		
 		return list;
+	}
+	
+	public PhotoDTO readPhoto(int num) {
+		PhotoDTO dto = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String sql = "SELECT num, p.userId, userName, subject, content, imageFilename, TO_CHAR(created, 'YYYY-MM-DD') created FROM photo p "
+				+" JOIN member1 m1 ON p.userId = m1.userId " 
+				+ " WHERE num = ?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, num);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+//				num = rs.getInt("num");
+				String userId = rs.getString("userId");
+				String userName = rs.getString("userName");
+				String subject = rs.getString("subject");
+				String content = rs.getString("content");
+				String imageFilename = rs.getString("imageFilename");
+				String created = rs.getString("created");
+				dto = new PhotoDTO(num, userId, userName, subject, content, imageFilename, created);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if(rs!=null) {
+				try {
+					rs.close();
+				} catch (Exception e2) {
+				}
+			}
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return dto;
 	}
 }

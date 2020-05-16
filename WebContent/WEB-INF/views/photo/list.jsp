@@ -43,6 +43,11 @@
 		var f=document.searchForm;
 		f.submit();
 	}
+	
+	function article(num){
+		const url = "${articleUrl}${query}&num="+num;
+		location.href=url;
+	}
 </script>
 </head>
 <body>
@@ -62,8 +67,9 @@
 			 <c:forEach var="dto" items="${list}">
 			      <li>
 			      	<div class="photo">
-			      		<div class="row_image" style="background-image:url('${image_path}/${dto.imageFilename}')"></div>
-						<div class="row_subject">${dto.subject}</div>
+			      		<div class="row_image" style="background-image:url('${image_path}/${dto.imageFilename}')"
+			      		onclick="article(${dto.num})"></div>
+						<div class="row_subject" onclick="article(${dto.num})">${dto.subject}</div>
 			      	</div>
 			      </li>
 			 </c:forEach>
@@ -72,7 +78,7 @@
 				<tr>
 					<td>
 						<c:if test="${dataCount==0}">
-							사진첩에 사진이 아직 없습니다.
+							게시물이 존재하지 않습니다.
 						</c:if>
 						<c:if test="${dataCount>0}">
 							${paging}

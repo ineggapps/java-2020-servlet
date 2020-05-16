@@ -21,10 +21,11 @@ public class PhotoDTO {
 		this.imageFilename = imageFilename;
 	}
 
-	public PhotoDTO(int num, String userId, String subject, String content, String imageFilename, String created) {
+	public PhotoDTO(int num, String userId, String userName,  String subject, String content, String imageFilename, String created) {
 		// DB에서 꺼내오는 경우
 		this.num = num;
 		this.userId = userId;
+		this.userName = userName;
 		this.subject = subject;
 		this.content = content;
 		this.imageFilename = imageFilename;
