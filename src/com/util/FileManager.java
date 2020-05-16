@@ -125,6 +125,7 @@ public class FileManager {
 			
 			f.delete();
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		return true;

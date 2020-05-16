@@ -39,6 +39,11 @@
    		f.action="<%=cp%>/photo/${mode}_ok.do";
         f.submit();
     }
+    
+    function deletePhoto(num){
+    	const url = "${deletePhotoUrl}${query}&num="+num;
+    	location.href = url;
+    }
 </script>
 </head>
 <body>
@@ -87,10 +92,10 @@
 			  <c:if test="${mode=='update'}">
 			  <%-- 글 수정일 때만 보이는 영역 --%>
 				  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
-				      <td width="100" bgcolor="#eeeeee" style="text-align: center;">첨부된 파일</td>
+				      <td width="100" bgcolor="#eeeeee" style="text-align: center;">사진</td>
 				      <td style="padding-left:10px;"> 
-				          <c:if test="${not empty dto.saveFilename }">
-				          ${dto.originalFilename } | <a href="javascript:deleteFile('${dto.num}')">삭제</a>
+				          <c:if test="${not empty dto.imageFilename }">
+				           <img src="${image_path}/${dto.imageFilename}" alt="${dto.imageFilename}" style="width:50%"/>
 				          </c:if>
 				      </td>
 				  </tr>
@@ -103,13 +108,14 @@
 			      <td align="center" >
 			      	<c:if test="${mode=='update'}">
 			      	<input type="hidden" name="num" value="${dto.num}"/>
+			      	<input type="hidden" name="imageFilename" value="${dto.imageFilename}" />
 			      	</c:if>
 			      	<c:if test="${not empty query}">
 			      	<input type="hidden" name="query" value="${query}"/>
 			      	</c:if>
 			        <button type="button" class="btn" onclick="sendOk();">${mode=='update'?'수정완료':'등록하기'}</button>
 			        <button type="reset" class="btn">다시입력</button>
-			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/list.do';">${mode=='update'?'수정취소':'등록취소'}</button>
+			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/list.do';">${mode=='update'?'수정취소':'등록취소'}</button>
 			      </td>
 			    </tr>
 			  </table>

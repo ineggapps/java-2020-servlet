@@ -2,6 +2,8 @@ package com.photo;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import com.member.SessionInfo;
+import com.util.FileManager;
 import com.util.MyUploadServlet;
 import com.util.MyUtil;
 
@@ -51,19 +54,21 @@ public class PhotoServlet extends MyUploadServlet {
 
 	// PARAM
 	private static final String PARAM_NUM = "num";
-	private static final String PARAM_SUBJECT = "subject";
-	private static final String PARAM_CONTENT = "content";
 	private static final String PARAM_PAGE = "page";
-	private static final String PARAM_CURRENT_PAGE = "current_page";
-	private static final String PARAM_TOTAL_PAGE = "total_page";
-	private static final String PARAM_DATA_COUNT = "dataCount";
-	private static final String PARAM_IMAGE_PATH = "image_path";
+	private static final String ATTRIBUTE_SUBJECT = "subject";
+	private static final String ATTRIBUTE_CONTENT = "content";
+	private static final String ATTRIBUTE_CURRENT_PAGE = "current_page";
+	private static final String ATTRIBUTE_TOTAL_PAGE = "total_page";
+	private static final String ATTRIBUTE_DATA_COUNT = "dataCount";
+	private static final String ATTRIBUTE_IMAGE_PATH = "image_path";
 	private static final String ATTRIBUTE_PAGING = "paging";
 	private static final String ATTRIBUTE_LIST = "list";
 	private static final String ATTRIBUTE_LIST_URL = "listUrl";
 	private static final String ATTRIBUTE_ARTICLE_URL = "articleUrl";
+	private static final String ATTRIBUTE_DELETE_PHOTO_URL = "deletePhotoUrl";
 	private static final String ATTRIBUTE_DTO = "dto";
 	private static final String ATTRIBUTE_QUERY = "query";
+	private static final String ATTRIBUTE_IMAGE_FILENAME = "imageFilename";
 
 	// SEARCH
 	private static final String CONDITION = "condition";
@@ -73,9 +78,9 @@ public class PhotoServlet extends MyUploadServlet {
 	private static final String CONDITION_CONTENT = "content";
 	private static final String CONDITION_USERNAME = "username";
 
-	// ETC
-	private final static String SAVE_FILENAME = "saveFilename";
-
+	//ETC
+	private static final String SAVE_FILENAME = "saveFilename";
+	
 	// URI
 	private String pathname;
 	private String contextPath;
@@ -119,15 +124,17 @@ public class PhotoServlet extends MyUploadServlet {
 		String path = VIEWS + "/" + JSP_LIST;
 		PhotoDAO dao = new PhotoDAO();
 		MyUtil util = new MyUtil();
-		// 검색 파라미터 불러오고 정리하기
 		Map<String, Object> attributes = new HashMap<>();
+		// 검색 파라미터 불러오고 정리하기
 		String condition = req.getParameter(CONDITION);
 		String keyword = req.getParameter(KEYWORD);
-		String page = req.getParameter(PARAM_PAGE);
+		checkSearchParameter(condition, keyword);
+		if(keyword != null ) {
+			keyword = URLDecoder.decode(keyword,"utf-8");
+		}
 		attributes.put(CONDITION, condition);
 		attributes.put(KEYWORD, keyword);
-		attributes.put(PARAM_PAGE, page != null ? page : "1");
-		checkSearchParameter(condition, keyword);
+		String page = req.getParameter(PARAM_PAGE);
 
 		List<PhotoDTO> list;
 		// 검색여부 확인
@@ -149,18 +156,20 @@ public class PhotoServlet extends MyUploadServlet {
 			dto.setListNum(listNum);
 		}
 		int totalPage = util.pageCount(rows, dataCount);
-		attributes.put(PARAM_DATA_COUNT, dataCount + "");
+		attributes.put(ATTRIBUTE_DATA_COUNT, dataCount + "");
 		attributes.put(CONDITION, condition);
-		attributes.put(PARAM_CURRENT_PAGE, currentPage + "");
-		attributes.put(PARAM_TOTAL_PAGE, totalPage + "");
+		attributes.put(ATTRIBUTE_CURRENT_PAGE, currentPage + "");
+		attributes.put(ATTRIBUTE_TOTAL_PAGE, totalPage + "");
 		attributes.put(ATTRIBUTE_LIST, list);
-		attributes.put(PARAM_IMAGE_PATH, imagePath);
-		String query = makeQuery(attributes);
+		attributes.put(ATTRIBUTE_IMAGE_PATH, imagePath);
+		String query = makeQuery(attributes);//페이지 빠진 파라미터 쿼리
 		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST;
 		String articleURL = contextPath + "/" + PHOTO + "/" + API_ARTICLE;
+		attributes.put(ATTRIBUTE_PAGING, util.paging(currentPage, totalPage, listURL + query));
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
 		attributes.put(ATTRIBUTE_LIST_URL, listURL);
-		attributes.put(ATTRIBUTE_PAGING, util.paging(currentPage, totalPage, listURL));
 		attributes.put(ATTRIBUTE_ARTICLE_URL, articleURL);
+		query = makeQuery(attributes);//페이징 포함 파라미터 쿼리
 		attributes.put(ATTRIBUTE_QUERY, query);
 
 		// 기본 파라미터 setAttribute하기
@@ -172,30 +181,34 @@ public class PhotoServlet extends MyUploadServlet {
 		String path = VIEWS + "/" + JSP_ARTICLE;
 		PhotoDAO dao = new PhotoDAO();
 		PhotoDTO dto;
-		// 검색 파라미터 불러오고 정리하기
 		Map<String, Object> attributes = new HashMap<>();
-		String num = req.getParameter(PARAM_NUM);
+		// 검색 파라미터 불러오고 정리하기
 		String condition = req.getParameter(CONDITION);
 		String keyword = req.getParameter(KEYWORD);
-		String page = req.getParameter(PARAM_PAGE);
-		String query;
+		checkSearchParameter(condition, keyword);
+		if(keyword != null ) {
+			keyword = URLDecoder.decode(keyword,"utf-8");
+		}
 		attributes.put(CONDITION, condition);
 		attributes.put(KEYWORD, keyword);
+		String num = req.getParameter(PARAM_NUM);
+		String page = req.getParameter(PARAM_PAGE);
+		String query;
 		attributes.put(PARAM_PAGE, page != null ? page : "1");
 		checkSearchParameter(condition, keyword);
 		try {
 			dto = dao.readPhoto(Integer.parseInt(num));
 			attributes.put(ATTRIBUTE_DTO, dto);
-			
+
 			// PARAM
 			query = makeQuery(attributes);
 			attributes.put(CONDITION, condition);
 			attributes.put(PARAM_PAGE, page);
-			attributes.put(PARAM_IMAGE_PATH, imagePath);
-			String listURL = contextPath + "/" + PHOTO + "/" + API_LIST ;
+			attributes.put(ATTRIBUTE_IMAGE_PATH, imagePath);
+			String listURL = contextPath + "/" + PHOTO + "/" + API_LIST;
 			attributes.put(ATTRIBUTE_LIST_URL, listURL);
 			attributes.put(ATTRIBUTE_QUERY, query);
-			
+
 			// 기본 파라미터 setAttribute하기
 			setAttributes(req, attributes);
 			forward(req, resp, path);
@@ -221,8 +234,8 @@ public class PhotoServlet extends MyUploadServlet {
 		SessionInfo info = getSessionInfo(req.getSession());
 		// DTO 관련 파라미터 받기
 		String userId = info.getUserId();
-		String subject = req.getParameter(PARAM_SUBJECT);
-		String content = req.getParameter(PARAM_CONTENT);
+		String subject = req.getParameter(ATTRIBUTE_SUBJECT);
+		String content = req.getParameter(ATTRIBUTE_CONTENT);
 		String imageFilename = "";
 		// TODO: 페이징 처리, 검색어 처리를 위한 파라미터 받기
 
@@ -247,15 +260,196 @@ public class PhotoServlet extends MyUploadServlet {
 	}
 
 	protected void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String path = VIEWS + "/" + JSP_UPDATE;
+		String deletePhotoUrl = contextPath + "/" + PHOTO + "/" + API_DELETE_PHOTO;
+		PhotoDAO dao = new PhotoDAO();
+		PhotoDTO dto;
+		SessionInfo info = getSessionInfo(req.getSession());
+		// 파라미터 처리
+		Map<String, Object> attributes = new HashMap<>();
+		String num = req.getParameter(PARAM_NUM);
+		String condition = req.getParameter(CONDITION);
+		String keyword = req.getParameter(KEYWORD);
+		if(keyword != null && req.getMethod().equalsIgnoreCase("GET")) {
+			keyword = URLDecoder.decode(keyword,"utf-8");
+		}
+		String page = req.getParameter(PARAM_PAGE);
+		String query;
+		attributes.put(CONDITION, condition);
+		attributes.put(KEYWORD, keyword);
+		attributes.put(ATTRIBUTE_IMAGE_PATH, imagePath);
+		attributes.put(ATTRIBUTE_DELETE_PHOTO_URL, deletePhotoUrl);
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
+		attributes.put(PARAM_NUM,num);
+		checkSearchParameter(condition, keyword);
+
+		// 포워딩 처리 준비
+		attributes.put(MODE, MODE_UPDATE);
+		query = makeQuery(attributes);
+		attributes.put(ATTRIBUTE_QUERY,query);
+		try {
+			dto = dao.readPhoto(Integer.parseInt(num));
+			if (!dto.getUserId().equals(info.getUserId())) {
+				resp.sendRedirect(contextPath + "/" + PHOTO + "/" + API_ARTICLE + query + "&" + PARAM_NUM + "=" + num);
+				return;
+			}
+			attributes.put(ATTRIBUTE_DTO, dto);
+			// 기본 파라미터 setAttribute하기
+			setAttributes(req, attributes);
+			forward(req, resp, path);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(contextPath + "/" + PHOTO + "/" + API_ARTICLE + query + "&" + PARAM_NUM + "=" + num);
+			return;
+		}
+
 	}
 
 	protected void updateSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		PhotoDAO dao = new PhotoDAO();
+		PhotoDTO dto;
+		SessionInfo info = getSessionInfo(req.getSession());
+		// 파라미터 처리
+		Map<String, Object> attributes = new HashMap<>();
+		String num = req.getParameter(PARAM_NUM);
+		// 검색 파라미터 불러오고 정리하기
+		String condition = req.getParameter(CONDITION);
+		String keyword = req.getParameter(KEYWORD);
+		checkSearchParameter(condition, keyword);
+		if(keyword != null ) {
+			keyword = URLDecoder.decode(keyword,"utf-8");
+		}
+		attributes.put(CONDITION, condition);
+		attributes.put(KEYWORD, keyword);
+		String page = req.getParameter(PARAM_PAGE);
+		String query;
+		attributes.put(ATTRIBUTE_IMAGE_PATH, imagePath);
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
+		checkSearchParameter(condition, keyword);
+		query = makeQuery(attributes);
+		try {
+			int n = Integer.parseInt(num);
+			String userId = info.getUserId();
+			String subject = req.getParameter(ATTRIBUTE_SUBJECT);
+			String content = req.getParameter(ATTRIBUTE_CONTENT);
+			String imageFilename = req.getParameter(ATTRIBUTE_IMAGE_FILENAME);
+			dto = new PhotoDTO(n, userId, subject, content, imageFilename);
+			
+			// 파일 업로드
+			Part p = req.getPart("upload");//input name이 upload임!!
+			Map<String, String> map = doFileUpload(p, pathname);
+			if (map != null) {// 파일이 업로드되고 존재하는 경우에만
+				//기존 파일 삭제하기
+				if( imageFilename !=null && imageFilename.length()!=0) {
+					FileManager.doFiledelete(pathname, imageFilename);
+				}
+				//새로운 파일 업로드한 파일명 씌우기
+				dto.setImageFilename(map.get(SAVE_FILENAME));
+			}
+			
+			dao.updatePhoto(dto);
+			resp.sendRedirect(contextPath + "/" + PHOTO + "/" + API_ARTICLE + "/" + query + "&" + PARAM_NUM + "=" + num);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(contextPath + "/" + PHOTO + "/" + API_UPDATE + "/" + query + "&" + PARAM_NUM + "=" + num);
+			return;
+		}
+
 	}
 
 	protected void delete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String listUrl = contextPath + "/" + PHOTO + "/" + API_LIST;
+		PhotoDAO dao = new PhotoDAO();
+		PhotoDTO dto;
+		SessionInfo info = getSessionInfo(req.getSession());
+		// 파라미터 처리
+		Map<String, Object> attributes = new HashMap<>();
+		String num = req.getParameter(PARAM_NUM);
+		// 검색 파라미터 불러오고 정리하기
+		String condition = req.getParameter(CONDITION);
+		String keyword = req.getParameter(KEYWORD);
+		checkSearchParameter(condition, keyword);
+		if(keyword != null ) {
+			keyword = URLDecoder.decode(keyword,"utf-8");
+		}
+		attributes.put(CONDITION, condition);
+		attributes.put(KEYWORD, keyword);
+		String page = req.getParameter(PARAM_PAGE);
+		String query;
+		attributes.put(ATTRIBUTE_IMAGE_PATH, imagePath);
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
+		attributes.put(PARAM_NUM, num);
+		attributes.put(MODE, MODE_UPDATE);
+		checkSearchParameter(condition, keyword);
+
+		// 포워딩 처리 준비
+		query = makeQuery(attributes);
+		attributes.put(ATTRIBUTE_QUERY, query);
+		try {
+			dto = dao.readPhoto(Integer.parseInt(num));
+			//작성자가 아니면 글 보기 페이지로 이동하기
+			if(!dto.getUserId().equals(info.getUserId())) {
+				throw new Exception("작성자가 아님");
+			}
+			FileManager.doFiledelete(pathname, dto.getImageFilename());
+			dao.deletePhoto(Integer.parseInt(num));//갱신
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//포워딩 처리
+		resp.sendRedirect(listUrl + query);
+
 	}
 
 	protected void deletePhoto(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		String path = VIEWS + "/" + JSP_UPDATE;
+		String updateUrl = contextPath + "/" + PHOTO + "/" + API_UPDATE;
+		PhotoDAO dao = new PhotoDAO();
+		PhotoDTO dto;
+		SessionInfo info = getSessionInfo(req.getSession());
+		// 파라미터 처리
+		Map<String, Object> attributes = new HashMap<>();
+		String num = req.getParameter(PARAM_NUM);
+		String condition = req.getParameter(CONDITION);
+		String keyword = req.getParameter(KEYWORD);
+		if(keyword != null) {
+			keyword = URLDecoder.decode(keyword,"utf-8");
+		}
+		String page = req.getParameter(PARAM_PAGE);
+		String query;
+		attributes.put(CONDITION, condition);
+		attributes.put(KEYWORD, keyword);
+		attributes.put(ATTRIBUTE_IMAGE_PATH, imagePath);
+		attributes.put(PARAM_PAGE, page != null ? page : "1");
+		attributes.put(PARAM_NUM, num);
+		attributes.put(MODE, MODE_UPDATE);
+		checkSearchParameter(condition, keyword);
+
+		// 포워딩 처리 준비
+		query = makeQuery(attributes);
+		attributes.put(MODE, MODE_UPDATE);
+		attributes.put(ATTRIBUTE_QUERY, query);
+		try {
+			dto = dao.readPhoto(Integer.parseInt(num));
+			//작성자가 아니면 글 보기 페이지로 이동하기
+			if(!dto.getUserId().equals(info.getUserId())) {
+				throw new Exception("작성자가 아님");
+			}
+			if(FileManager.doFiledelete(pathname, dto.getImageFilename())){
+				dto.setImageFilename("");
+				dao.updatePhoto(dto);//갱신
+			}else {
+				throw new Exception("이미지 삭제 실패");
+			}
+			//포워딩 처리
+			attributes.put(ATTRIBUTE_DTO, dto);
+			setAttributes(req, attributes);
+			forward(req, resp, path);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resp.sendRedirect(updateUrl + query + "&" + PARAM_NUM + "=" + num);
+			return;
+		}
 	}
 
 	private SessionInfo getSessionInfo(HttpSession session) {
@@ -281,7 +475,15 @@ public class PhotoServlet extends MyUploadServlet {
 			return;
 		}
 		for (String key : attributes.keySet()) {
-			req.setAttribute(key, attributes.getOrDefault(key, ""));
+			Object value = attributes.getOrDefault(key, "");
+			if(value != null && req.getMethod().equalsIgnoreCase("GET") && key.equals(KEYWORD) &&  value instanceof String) {
+				try {
+					value = (Object)URLEncoder.encode(((String)value),"utf-8");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			req.setAttribute(key, value);
 		}
 	}
 
@@ -313,13 +515,21 @@ public class PhotoServlet extends MyUploadServlet {
 	private String makeQuery(Map<String, Object> attributes) {
 		StringBuilder query = new StringBuilder();
 		String[] keys = { CONDITION, KEYWORD, PARAM_PAGE };
-		if(attributes.keySet().size()==0) {
-			//아무것도 없다면
+		if (attributes.keySet().size() == 0) {
+			// 아무것도 없다면
 			attributes.put(PARAM_PAGE, "1");
 		}
 		for (String key : keys) {
 			Object value = attributes.get(key);
 			if (value != null) {
+				if(key.equals(KEYWORD) &&  value instanceof String) {
+					try {
+						value = (Object)URLEncoder.encode(((String)value),"utf-8");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
 				if (value instanceof String || value instanceof Integer || value instanceof Long
 						|| value instanceof Double || value instanceof Float) {
 					query.append("&" + key + "=" + value);
@@ -331,7 +541,7 @@ public class PhotoServlet extends MyUploadServlet {
 		if (result.length() > 0) {
 			return "?" + result.substring(1);
 		} else {
-			return null;
+			return "";
 		}
 
 	}

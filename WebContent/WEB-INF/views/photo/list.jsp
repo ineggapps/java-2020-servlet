@@ -80,6 +80,30 @@
 			      </li>
 			 </c:forEach>
 			  </ul>
+			  
+  			<table style="width: 100%; margin: 10px auto; border-spacing: 0px;">
+			   <tr height="40">
+			      <td align="left" width="100">
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/list.do';">새로고침</button>
+			      </td>
+			      <td align="center">
+			          <form name="searchForm" action="<%=cp%>/photo/list.do" method="post">
+			              <select name="condition" class="selectField">
+			                  <option value="subject" ${condition=="subject"?"selected='selected'":""}>제목</option>
+			                  <option value="userName" ${condition=="userName"?"selected='selected'":""}>작성자</option>
+			                  <option value="content" ${condition=="content"?"selected='selected'":""}>내용</option>
+			                  <option value="created" ${condition=="created"?"selected='selected'":""}>등록일</option>
+			            </select>
+			            <input type="text" name="keyword" class="boxTF" value="${keyword}">
+			            <button type="button" class="btn" onclick="searchList()">검색</button>
+			        </form>
+			      </td>
+			      <td align="right" width="100">
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/created.do${query}';">사진 올리기</button>
+			      </td>
+			   </tr>
+			</table>
+			  
 			<table style="width: 100%; margin: 10px auto; border-spacing: 0px;">
 				<tr>
 					<td>
@@ -91,11 +115,6 @@
 						</c:if>
 					</td>
 				</tr>
-				<tr>
-					<td align="right" width="100">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/created.do${query}';">사진 올리기</button>
-			     	</td>
-			   </tr>
 			</table>
         </div>
 

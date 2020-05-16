@@ -246,4 +246,49 @@ public class PhotoDAO {
 		}
 		return dto;
 	}
+	
+	public int updatePhoto(PhotoDTO dto) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "UPDATE photo SET subject=?, content=?, imageFilename=? WHERE num=?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, dto.getSubject());
+			pstmt.setString(2, dto.getContent());
+			pstmt.setString(3, dto.getImageFilename());
+			pstmt.setInt(4, dto.getNum());
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return result;
+	}
+	
+	public int deletePhoto(int num) {
+		int result = 0;
+		PreparedStatement pstmt = null;
+		String sql = "DELETE FROM photo WHERE num = ?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1,num);
+			result = pstmt.executeUpdate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (Exception e2) {
+				}
+			}
+		}
+		return result;
+	}
 }

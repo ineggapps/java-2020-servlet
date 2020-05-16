@@ -31,6 +31,15 @@ public class PhotoDTO {
 		this.imageFilename = imageFilename;
 		this.created = created;
 	}
+	
+	public PhotoDTO(int num, String userId, String subject, String content, String imageFilename) {
+		//±Û ¼öÁ¤
+		this.num = num;
+		this.userId = userId;
+		this.subject = subject;
+		this.content = content;
+		this.imageFilename = imageFilename;
+	}
 
 	public int getNum() {
 		return num;
