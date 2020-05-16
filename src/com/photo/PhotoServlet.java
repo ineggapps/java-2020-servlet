@@ -157,7 +157,7 @@ public class PhotoServlet extends MyUploadServlet {
 		attributes.put(PARAM_IMAGE_PATH, imagePath);
 		String query = makeQuery(attributes);
 		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST;
-		String articleURL = contextPath + "/" + PHOTO + "/" + API_ARTICLE + query;
+		String articleURL = contextPath + "/" + PHOTO + "/" + API_ARTICLE;
 		attributes.put(ATTRIBUTE_LIST_URL, listURL);
 		attributes.put(ATTRIBUTE_PAGING, util.paging(currentPage, totalPage, listURL));
 		attributes.put(ATTRIBUTE_ARTICLE_URL, articleURL);
@@ -178,6 +178,7 @@ public class PhotoServlet extends MyUploadServlet {
 		String condition = req.getParameter(CONDITION);
 		String keyword = req.getParameter(KEYWORD);
 		String page = req.getParameter(PARAM_PAGE);
+		String query;
 		attributes.put(CONDITION, condition);
 		attributes.put(KEYWORD, keyword);
 		attributes.put(PARAM_PAGE, page != null ? page : "1");
@@ -186,22 +187,24 @@ public class PhotoServlet extends MyUploadServlet {
 			dto = dao.readPhoto(Integer.parseInt(num));
 			attributes.put(ATTRIBUTE_DTO, dto);
 			
+			// PARAM
+			query = makeQuery(attributes);
+			attributes.put(CONDITION, condition);
+			attributes.put(PARAM_PAGE, page);
+			attributes.put(PARAM_IMAGE_PATH, imagePath);
+			String listURL = contextPath + "/" + PHOTO + "/" + API_LIST ;
+			attributes.put(ATTRIBUTE_LIST_URL, listURL);
+			attributes.put(ATTRIBUTE_QUERY, query);
+			
+			// 기본 파라미터 setAttribute하기
+			setAttributes(req, attributes);
+			forward(req, resp, path);
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.sendRedirect(contextPath + "/" + PHOTO + "/" + API_LIST);
 			return;
 		}
 
-		// PARAM
-		attributes.put(CONDITION, condition);
-		attributes.put(PARAM_PAGE, page);
-		attributes.put(PARAM_IMAGE_PATH, imagePath);
-		String query = makeQuery(attributes);
-		String listURL = contextPath + "/" + PHOTO + "/" + API_LIST + query;
-		attributes.put(ATTRIBUTE_LIST_URL, listURL);
-		// 기본 파라미터 setAttribute하기
-		setAttributes(req, attributes);
-		forward(req, resp, path);
 	}
 
 	protected void createdForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -324,6 +327,7 @@ public class PhotoServlet extends MyUploadServlet {
 			}
 		}
 		String result = query.toString();
+//		System.out.println("반환되는 쿼리" + result);
 		if (result.length() > 0) {
 			return "?" + result.substring(1);
 		} else {

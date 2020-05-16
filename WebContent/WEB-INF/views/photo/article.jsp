@@ -65,12 +65,12 @@ function deleteBoard(num) {
 
 			<tr height="45">
 			    <td>
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/notice/update.do${query}&num=${dto.num}';">수정</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/update.do${query}&num=${dto.num}';">수정</button>
 			          <button type="button" class="btn" onclick="deleteBoard('${dto.num}');">삭제</button>
 			    </td>
 			
 			    <td align="right">
-			        <button type="button" class="btn" onclick="javascript:location.href='${listUrl}';">리스트</button>
+			        <button type="button" class="btn" onclick="javascript:location.href='${listUrl}${query}';">리스트</button>
 			    </td>
 			</tr>
 			</table>
