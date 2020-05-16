@@ -478,7 +478,7 @@ public class PhotoServlet extends MyUploadServlet {
 			Object value = attributes.getOrDefault(key, "");
 			if(value != null && req.getMethod().equalsIgnoreCase("GET") && key.equals(KEYWORD) &&  value instanceof String) {
 				try {
-					value = (Object)URLEncoder.encode(((String)value),"utf-8");
+					value = (Object)URLDecoder.decode(((String)value),"utf-8");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
